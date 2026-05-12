@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:oksana-mukha.com)",
+      "WebFetch(domain:bellara.ro)",
+      "Bash(dir \"C:\\\\Users\\\\DenysChuma\\\\Bella_Sposa_Bridal\")",
+      "Bash(npm start *)",
+      "WebFetch(domain:drive.google.com)",
+      "WebFetch(domain:www.dropbox.com)",
+      "Bash(curl -L -o 'C:\\\\Users\\\\DenysChuma\\\\Bella_Sposa_Bridal\\\\ui\\\\public\\\\images\\\\dropbox1.zip' 'https://www.dropbox.com/scl/fo/xy4s7ydw33gmtp870dml1/ADa4P6paw1XORkJvOLg1ozI?rlkey=iyttd5mymz78881yfkyje1dy3&dl=1' -H 'User-Agent: Mozilla/5.0' --max-time 60 -w '\\\\nHTTP: %{http_code}\\\\nSize: %{size_download}')",
+      "Bash(curl -L -o 'C:\\\\Users\\\\DenysChuma\\\\Bella_Sposa_Bridal\\\\ui\\\\public\\\\images\\\\dropbox2.zip' 'https://www.dropbox.com/scl/fo/r7nazx300kpan39i8ktxi/AG1XH2PBb1zb-PzSq6rqbzU?rlkey=y6lilsp7rdaf5idb5u73mxc7b&st=owco0h1a&dl=1' -H 'User-Agent: Mozilla/5.0' --max-time 60 -w '\\\\nHTTP: %{http_code}\\\\nSize: %{size_download}')",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\DenysChuma\" -Depth 2 | Where-Object { $_.PSIsContainer } | Select-Object FullName | Format-Table -AutoSize)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\DenysChuma\" -Depth 1 | Where-Object { $_.PSIsContainer } | Select-Object Name | Sort-Object Name)",
+      "PowerShell(Add-Type -AssemblyName System.IO.Compression.FileSystem; $zip = [System.IO.Compression.ZipFile]::OpenRead\\(\"C:\\\\Users\\\\DenysChuma\\\\Bella_Sposa_Bridal\\\\ui\\\\Photos\\\\Обложка.zip\"\\); $zip.Entries | Select-Object Name, Length | Format-Table -AutoSize; $zip.Dispose\\(\\))",
+      "PowerShell(Get-Process *)",
+      "PowerShell(Stop-Process *)",
+      "WebFetch(domain:inesdisanto.com)",
+      "PowerShell(Copy-Item *)",
+      "Bash(gh auth *)"
+    ]
+  }
+}
