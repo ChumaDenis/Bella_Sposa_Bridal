@@ -56,7 +56,7 @@ export class Home implements AfterViewInit, OnDestroy {
   }
 
   closeMegaMenu() {
-    this.megaMenuTimer = setTimeout(() => { this.collectionMenuOpen = false; }, 120);
+    this.megaMenuTimer = setTimeout(() => { this.collectionMenuOpen = false; }, 200);
   }
 
   private updateNavbar() {

@@ -1326,6 +1326,7 @@
 }
 
 @media (max-width: 768px) {
+  .mega-menu { display: none; }
   .navbar { padding: 1rem 1.25rem; }
 
   /* Flex + absolute burger so logo truly centers */

@@ -1,19 +1,18 @@
 <!-- NAVBAR -->
-<nav class="navbar" #navbar [class.mega-open]="collectionMenuOpen">
+<nav class="navbar" #navbar [class.mega-open]="collectionMenuOpen" (mouseleave)="closeMegaMenu()">
   <div class="nav-inner">
 
     <!-- Left links -->
     <div class="nav-left">
-      <a class="nav-link" (click)="scrollTo('about')">About</a>
-      <a class="nav-link" (click)="scrollTo('services')">Services</a>
+      <a class="nav-link" (click)="scrollTo('about')"    (mouseenter)="closeMegaMenu()">About</a>
+      <a class="nav-link" (click)="scrollTo('services')" (mouseenter)="closeMegaMenu()">Services</a>
       <a class="nav-link"
          (click)="scrollTo('collection'); closeMegaMenu()"
-         (mouseenter)="openMegaMenu()"
-         (mouseleave)="closeMegaMenu()">Collection</a>
+         (mouseenter)="openMegaMenu()">Collection</a>
     </div>
 
     <!-- Logo — centered -->
-    <a class="nav-logo" (click)="scrollTo('hero')" aria-label="Bella Sposa Bridal">
+    <a class="nav-logo" (click)="scrollTo('hero')" (mouseenter)="closeMegaMenu()" aria-label="Bella Sposa Bridal">
       <span class="logo-wordmark">
         <span class="logo-main">Bella Sposa</span>
         <span class="logo-divider"><span class="logo-divider-line"></span><span class="logo-divider-diamond"></span><span class="logo-divider-line"></span></span>
@@ -23,9 +22,10 @@
 
     <!-- Right links -->
     <div class="nav-right">
-      <a class="nav-link" (click)="scrollTo('process')">Process</a>
-      <a class="nav-link" (click)="scrollTo('contact')">Contact</a>
+      <a class="nav-link" (click)="scrollTo('process')" (mouseenter)="closeMegaMenu()">Process</a>
+      <a class="nav-link" (click)="scrollTo('contact')" (mouseenter)="closeMegaMenu()">Contact</a>
       <a class="nav-link nav-link-insta"
+         (mouseenter)="closeMegaMenu()"
          href="https://www.instagram.com/bella_sposa_bridal?igsh=aXpxbTIxYjcxNmEw"
          target="_blank" rel="noopener">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
