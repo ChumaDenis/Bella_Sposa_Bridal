@@ -46,7 +46,6 @@ Thumbs.db
 # Heavy media assets (photos/videos — too large for git)
 /Photos/
 /Videos/
-/public/videos/
 
 # Claude Code memory
 .claude/
