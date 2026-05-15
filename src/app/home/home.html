@@ -1,12 +1,15 @@
 <!-- NAVBAR -->
-<nav class="navbar" #navbar>
+<nav class="navbar" #navbar [class.mega-open]="collectionMenuOpen">
   <div class="nav-inner">
 
     <!-- Left links -->
     <div class="nav-left">
       <a class="nav-link" (click)="scrollTo('about')">About</a>
       <a class="nav-link" (click)="scrollTo('services')">Services</a>
-      <a class="nav-link" (click)="scrollTo('collection')">Collection</a>
+      <a class="nav-link"
+         (click)="scrollTo('collection'); closeMegaMenu()"
+         (mouseenter)="openMegaMenu()"
+         (mouseleave)="closeMegaMenu()">Collection</a>
     </div>
 
     <!-- Logo — centered -->
@@ -78,6 +81,44 @@
     </a>
 
     <p class="overlay-tagline">Where your love story begins</p>
+  </div>
+</div>
+
+<!-- COLLECTION MEGA-MENU -->
+<div class="mega-menu"
+     [class.open]="collectionMenuOpen"
+     (mouseenter)="openMegaMenu()"
+     (mouseleave)="closeMegaMenu()">
+  <div class="mega-inner container">
+
+    <div class="mega-text">
+      <span class="section-label">Bella Sposa</span>
+      <h2 class="mega-title">Collection<br><em>2026</em></h2>
+      <p class="mega-desc">Exquisite silhouettes handcrafted in London. Each gown is a story waiting to be worn.</p>
+      <a class="mega-cta" (click)="scrollTo('collection'); closeMegaMenu()">
+        View Full Collection
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </a>
+    </div>
+
+    <div class="mega-photos">
+      <div class="mega-photo">
+        <img src="/images/cover-1.jpg" alt="Lace & Grace" loading="eager" />
+        <div class="mega-photo-label">Lace &amp; Grace</div>
+      </div>
+      <div class="mega-photo">
+        <img src="/images/cover-2.jpg" alt="Grand Romance" loading="eager" />
+        <div class="mega-photo-label">Grand Romance</div>
+      </div>
+      <div class="mega-photo">
+        <img src="/images/cover-3.jpg" alt="Ethereal Silk" loading="eager" />
+        <div class="mega-photo-label">Ethereal Silk</div>
+      </div>
+    </div>
+
   </div>
 </div>
 

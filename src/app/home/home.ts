@@ -20,7 +20,9 @@ export class Home implements AfterViewInit, OnDestroy {
 
   private observer!:            IntersectionObserver;
   private aboutVideoObserver!:  IntersectionObserver;
-  menuOpen = false;
+  menuOpen           = false;
+  collectionMenuOpen = false;
+  private megaMenuTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngAfterViewInit() {
     window.addEventListener('scroll', this.scrollHandler, { passive: true });
@@ -45,6 +47,16 @@ export class Home implements AfterViewInit, OnDestroy {
     window.removeEventListener('scroll', this.scrollHandler);
     this.observer?.disconnect();
     this.aboutVideoObserver?.disconnect();
+    if (this.megaMenuTimer) clearTimeout(this.megaMenuTimer);
+  }
+
+  openMegaMenu()  {
+    if (this.megaMenuTimer) clearTimeout(this.megaMenuTimer);
+    this.collectionMenuOpen = true;
+  }
+
+  closeMegaMenu() {
+    this.megaMenuTimer = setTimeout(() => { this.collectionMenuOpen = false; }, 120);
   }
 
   private updateNavbar() {
