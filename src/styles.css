@@ -7,10 +7,12 @@
 :root {
   --cream: #FDFAF6;
   --ivory: #F5EFE6;
+  --champagne: #F0E6D3;
   --gold: #B8975A;
   --gold-light: #D4B483;
-  --dark: #1C1C1C;
-  --dark-muted: #4A4A4A;
+  --navy: #1B2C42;
+  --dark: #1B2C42;
+  --dark-muted: #4A6072;
   --white: #FFFFFF;
   --font-serif: 'Cormorant Garamond', Georgia, serif;
   --font-sans: 'Montserrat', sans-serif;

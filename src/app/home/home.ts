@@ -10,24 +10,41 @@ import { CommonModule } from '@angular/common';
 export class Home implements AfterViewInit, OnDestroy {
   @ViewChild('navbar') navbar!: ElementRef<HTMLElement>;
   @ViewChild('heroSection') heroSection!: ElementRef<HTMLElement>;
+  @ViewChild('heroVideo')  heroVideo!:  ElementRef<HTMLVideoElement>;
+  @ViewChild('aboutVideo') aboutVideo!: ElementRef<HTMLVideoElement>;
 
-  private scrollHandler = () => {
-    this.updateNavbar();
-    this.updateParallax();
-  };
+  isMuted      = true;
+  isAboutMuted = true;
 
-  private observer!: IntersectionObserver;
+  private scrollHandler = () => { this.updateNavbar(); };
+
+  private observer!:            IntersectionObserver;
+  private aboutVideoObserver!:  IntersectionObserver;
   menuOpen = false;
 
   ngAfterViewInit() {
     window.addEventListener('scroll', this.scrollHandler, { passive: true });
     this.initScrollReveal();
     this.initCursor();
+    this.startHeroVideo();
+    this.initAboutVideo();
+  }
+
+  private startHeroVideo() {
+    const video = this.heroVideo?.nativeElement;
+    if (!video) return;
+    video.muted = true;
+    video.play().catch(() => {
+      // Autoplay blocked — video will play on first user interaction
+      const resume = () => { video.play(); document.removeEventListener('click', resume); };
+      document.addEventListener('click', resume, { once: true });
+    });
   }
 
   ngOnDestroy() {
     window.removeEventListener('scroll', this.scrollHandler);
     this.observer?.disconnect();
+    this.aboutVideoObserver?.disconnect();
   }
 
   private updateNavbar() {
@@ -36,10 +53,7 @@ export class Home implements AfterViewInit, OnDestroy {
   }
 
   private updateParallax() {
-    const hero = this.heroSection?.nativeElement;
-    if (!hero) return;
-    const video = hero.querySelector('.hero-video') as HTMLElement;
-    if (video) video.style.transform = `translateY(${window.scrollY * 0.35}px)`;
+    // No parallax on portrait video — it would push content out of frame
   }
 
   private initScrollReveal() {
@@ -79,6 +93,35 @@ export class Home implements AfterViewInit, OnDestroy {
   toggleMenu() { this.menuOpen = !this.menuOpen; }
   closeMenu()  { this.menuOpen = false; }
 
+  toggleSound() {
+    const video = this.heroVideo?.nativeElement;
+    if (!video) return;
+    this.isMuted = !this.isMuted;
+    video.muted = this.isMuted;
+    if (!this.isMuted) video.play();
+  }
+
+  toggleAboutSound() {
+    const video = this.aboutVideo?.nativeElement;
+    if (!video) return;
+    this.isAboutMuted = !this.isAboutMuted;
+    video.muted = this.isAboutMuted;
+  }
+
+  private initAboutVideo() {
+    const video = this.aboutVideo?.nativeElement;
+    if (!video) return;
+    video.muted = true;
+    this.aboutVideoObserver = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
+    }, { threshold: 0.25 });
+    this.aboutVideoObserver.observe(video);
+  }
+
   scrollTo(id: string) {
     this.closeMenu();
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
@@ -104,5 +147,26 @@ export class Home implements AfterViewInit, OnDestroy {
     { num: '01', title: 'Consultation', desc: 'We get to know you — your vision, your style, the feeling you want to carry on your day.' },
     { num: '02', title: 'Fitting',      desc: 'Each detail is tailored to you — until the silhouette feels like it was always yours.' },
     { num: '03', title: 'Your Day',     desc: 'Your gown is ready. You shine — and we take pride in every single stitch.' },
+  ];
+
+  readonly services = [
+    {
+      num: '01',
+      title: 'Initial Appointment',
+      desc: 'Your first visit to our boutique. We get to know you, your vision, and your wedding story — then guide you through a curated selection of gowns.',
+      detail: 'Up to 90 minutes · Complimentary',
+    },
+    {
+      num: '02',
+      title: 'Second Appointment',
+      desc: 'Return to refine your favourites. We narrow the styles, work on silhouette, and move closer to the dress that is truly yours.',
+      detail: 'Up to 60 minutes · By Invitation',
+    },
+    {
+      num: '03',
+      title: 'VIP Appointment',
+      desc: 'An exclusive private experience — the boutique is reserved entirely for you. Champagne, personal styling, and unhurried time to find your perfect gown.',
+      detail: 'Private Boutique · Champagne Included',
+    },
   ];
 }

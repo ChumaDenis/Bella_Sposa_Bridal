@@ -1,68 +1,136 @@
 <!-- NAVBAR -->
 <nav class="navbar" #navbar>
   <div class="nav-inner">
+
+    <!-- Left links -->
+    <div class="nav-left">
+      <a class="nav-link" (click)="scrollTo('about')">About</a>
+      <a class="nav-link" (click)="scrollTo('services')">Services</a>
+      <a class="nav-link" (click)="scrollTo('collection')">Collection</a>
+    </div>
+
+    <!-- Logo — centered -->
     <a class="nav-logo" (click)="scrollTo('hero')" aria-label="Bella Sposa Bridal">
-      <img src="/logo-white.png" alt="Bella Sposa Bridal" class="nav-logo-img nav-logo-light" />
-      <img src="/logo.png"       alt="Bella Sposa Bridal" class="nav-logo-img nav-logo-dark" />
+      <span class="logo-wordmark">
+        <span class="logo-main">Bella Sposa</span>
+        <span class="logo-divider"><span class="logo-divider-line"></span><span class="logo-divider-diamond"></span><span class="logo-divider-line"></span></span>
+        <span class="logo-sub">Wedding Salon</span>
+      </span>
     </a>
 
-    <ul class="nav-links" [class.open]="menuOpen">
-      <li><a (click)="scrollTo('about')">About</a></li>
-      <li><a (click)="scrollTo('collection')">Collection</a></li>
-      <li><a (click)="scrollTo('process')">Process</a></li>
-      <li><a (click)="scrollTo('contact')">Contact</a></li>
-      <li class="nav-insta">
-        <a href="https://www.instagram.com/bella_sposa_bridal?igsh=aXpxbTIxYjcxNmEw"
-           target="_blank" rel="noopener" class="btn-insta">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
-          </svg>
-          Instagram
-        </a>
-      </li>
-    </ul>
+    <!-- Right links -->
+    <div class="nav-right">
+      <a class="nav-link" (click)="scrollTo('process')">Process</a>
+      <a class="nav-link" (click)="scrollTo('contact')">Contact</a>
+      <a class="nav-link nav-link-insta"
+         href="https://www.instagram.com/bella_sposa_bridal?igsh=aXpxbTIxYjcxNmEw"
+         target="_blank" rel="noopener">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+        </svg>
+        Instagram
+      </a>
+    </div>
 
-    <button class="burger" [class.active]="menuOpen" (click)="toggleMenu()" aria-label="Menu">
+    <!-- Burger (mobile) -->
+    <button class="burger" [class.active]="menuOpen" (click)="toggleMenu()" aria-label="Open menu">
       <span></span><span></span><span></span>
     </button>
+
   </div>
 </nav>
 
+<!-- Slide-in drawer menu (mobile) -->
+<div class="nav-overlay" [class.open]="menuOpen" (click)="closeMenu()">
+  <div class="nav-drawer" (click)="$event.stopPropagation()">
+
+    <button class="overlay-close" (click)="closeMenu()" aria-label="Close menu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+
+    <a class="overlay-logo" (click)="scrollTo('hero')">
+      <span class="logo-wordmark logo-wordmark--dark">
+        <span class="logo-main">Bella Sposa</span>
+        <span class="logo-divider"><span class="logo-divider-line"></span><span class="logo-divider-diamond"></span><span class="logo-divider-line"></span></span>
+        <span class="logo-sub">Wedding Salon</span>
+      </span>
+    </a>
+
+    <nav class="overlay-links">
+      <a (click)="scrollTo('about')">About</a>
+      <a (click)="scrollTo('services')">Services</a>
+      <a (click)="scrollTo('collection')">Collection</a>
+      <a (click)="scrollTo('process')">Process</a>
+      <a (click)="scrollTo('contact')">Contact</a>
+    </nav>
+
+    <a class="overlay-insta"
+       href="https://www.instagram.com/bella_sposa_bridal?igsh=aXpxbTIxYjcxNmEw"
+       target="_blank" rel="noopener"
+       (click)="closeMenu()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+      </svg>
+      &#64;bella_sposa_bridal
+    </a>
+
+    <p class="overlay-tagline">Where your love story begins</p>
+  </div>
+</div>
+
 <!-- HERO -->
 <section class="hero" id="hero" #heroSection>
+
   <div class="hero-bg">
-    <video class="hero-video" autoplay muted loop playsinline>
-      <source src="/videos/hero.mp4" type="video/mp4">
+    <video class="hero-video" #heroVideo autoplay muted loop playsinline>
+      <source src="/videos/main.mp4" type="video/mp4">
     </video>
     <div class="hero-overlay"></div>
   </div>
 
-  <!-- Декоративні лінії -->
   <div class="hero-lines">
     <span></span><span></span><span></span>
   </div>
 
   <div class="hero-content">
-    <p class="hero-eyebrow">Bridal Atelier</p>
+    <p class="hero-eyebrow">London · Bridal Atelier</p>
     <h1 class="hero-title">
       <span class="hero-word">Bella</span>&nbsp;<span class="hero-word">Sposa</span><br>
       <em class="hero-word-em">Bridal</em>
     </h1>
-    <p class="hero-subtitle">Every dress is a story.<br>Yours begins here.</p>
-    <a href="https://www.instagram.com/bella_sposa_bridal?igsh=aXpxbTIxYjcxNmEw"
-       target="_blank" rel="noopener" class="btn-primary hero-btn">
-      Explore the Collection
+    <p class="hero-subtitle">A family story of craftsmanship.<br>Where your love story begins.</p>
+    <a (click)="scrollTo('about')" class="btn-primary hero-btn" style="cursor:pointer">
+      Discover Our Story
     </a>
   </div>
+
+  <div class="hero-corner hero-corner--tl"></div>
+  <div class="hero-corner hero-corner--br"></div>
+
+  <button class="hero-sound-btn" (click)="toggleSound()" [attr.aria-label]="isMuted ? 'Unmute video' : 'Mute video'">
+    @if (isMuted) {
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <line x1="23" y1="9" x2="17" y2="15"/>
+        <line x1="17" y1="9" x2="23" y2="15"/>
+      </svg>
+    } @else {
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+      </svg>
+    }
+  </button>
 
   <div class="hero-scroll-hint" (click)="scrollTo('about')">
     <span class="scroll-label">Scroll</span>
     <span class="scroll-line"></span>
   </div>
 
-  <!-- Кутовий декор -->
-  <div class="hero-corner hero-corner--tl"></div>
-  <div class="hero-corner hero-corner--br"></div>
 </section>
 
 <!-- MARQUEE -->
@@ -83,7 +151,26 @@
 <section class="about" id="about">
   <div class="about-inner container">
     <div class="about-image-wrap reveal reveal--left">
-      <img src="/images/about.jpg" alt="Bella Sposa Bridal atelier" class="about-img" />
+      <div class="about-media-inner">
+        <video class="about-video" #aboutVideo muted loop playsinline>
+          <source src="/videos/about-process.mp4" type="video/mp4">
+        </video>
+        <button class="about-sound-btn" (click)="toggleAboutSound()" [attr.aria-label]="isAboutMuted ? 'Unmute' : 'Mute'">
+          @if (isAboutMuted) {
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <line x1="23" y1="9" x2="17" y2="15"/>
+              <line x1="17" y1="9" x2="23" y2="15"/>
+            </svg>
+          } @else {
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+            </svg>
+          }
+        </button>
+      </div>
       <div class="about-badge">
         <span class="badge-num">100%</span>
         <span class="badge-text">handmade</span>
@@ -91,14 +178,37 @@
       <div class="about-img-line"></div>
     </div>
     <div class="about-text reveal reveal--right">
-      <span class="section-label">About Us</span>
-      <h2 class="section-title">The Art of<br><em>Your Look</em></h2>
-      <p>Bella Sposa Bridal is an atelier where every detail is considered and every stitch is made with love. We create wedding gowns that celebrate your uniqueness and stay in memory forever.</p>
-      <p>From your first consultation to the final fitting — we are here to make your day flawless.</p>
+      <span class="section-label">A Family Story</span>
+      <h2 class="section-title">Bridal Craftsmanship<br><em>Since Ukraine</em></h2>
+      <p>At Bella Sposa, every gown begins with a story — a story of love, craftsmanship, and timeless elegance. Our journey started in Ukraine, where our family atelier created wedding dresses for brides across Europe and in our hometown of Chernivtsi.</p>
+      <p>When the war in Ukraine began, like many families, we were forced to leave behind a part of our previous life. But our passion for bridal design, beauty, and craftsmanship never disappeared.</p>
+      <p>Today, based in London, we are proud to continue our story — bringing European bridal elegance, handmade quality, and years of experience to modern brides. We believe a wedding gown is more than just a dress: it is a feeling, a memory, and a moment a bride will carry with her forever.</p>
       <a href="https://www.instagram.com/bella_sposa_bridal?igsh=aXpxbTIxYjcxNmEw"
          target="_blank" rel="noopener" class="btn-outline">
         Our Instagram
       </a>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="services" id="services">
+  <div class="container">
+    <div class="section-header reveal reveal--up">
+      <span class="section-label">Our Services</span>
+      <h2 class="section-title">Your Bridal<br><em>Experience</em></h2>
+      <p class="section-desc">We offer a personal and unhurried appointment experience, thoughtfully tailored to every bride.</p>
+    </div>
+    <div class="services-grid">
+      @for (service of services; track service.title; let i = $index) {
+        <div class="service-card reveal reveal--up" [style.transition-delay]="(i * 120) + 'ms'">
+          <div class="service-num">{{ service.num }}</div>
+          <div class="service-icon"></div>
+          <h3 class="service-title">{{ service.title }}</h3>
+          <p class="service-desc">{{ service.desc }}</p>
+          <div class="service-detail">{{ service.detail }}</div>
+        </div>
+      }
     </div>
   </div>
 </section>
@@ -187,8 +297,8 @@
   <div class="container">
     <div class="section-header reveal reveal--up">
       <span class="section-label">Contact</span>
-      <h2 class="section-title">Book a<br><em>Consultation</em></h2>
-      <p class="section-desc">Message us on Instagram — and we'll find a time that works for you.</p>
+      <h2 class="section-title">Book Your<br><em>Appointment</em></h2>
+      <p class="section-desc">Message us on Instagram and we will find a time that works perfectly for you.</p>
     </div>
     <div class="contact-actions reveal reveal--up" style="transition-delay:150ms">
       <a href="https://www.instagram.com/bella_sposa_bridal?igsh=aXpxbTIxYjcxNmEw"
@@ -196,7 +306,7 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
         </svg>
-        Message Us on Instagram
+        Book an Appointment
       </a>
     </div>
   </div>
@@ -206,18 +316,20 @@
 <footer class="footer">
   <div class="footer-inner container">
     <div class="footer-logo">
-      <span class="logo-text logo-text--footer">
+      <span class="logo-wordmark logo-wordmark--footer">
         <span class="logo-main">Bella Sposa</span>
+        <span class="logo-divider"><span class="logo-divider-line"></span><span class="logo-divider-diamond"></span><span class="logo-divider-line"></span></span>
         <span class="logo-sub">Wedding Salon</span>
       </span>
     </div>
-    <p class="footer-tagline">Bridal Wedding Salon</p>
+    <p class="footer-tagline">Where your love story begins</p>
     <nav class="footer-nav">
       <a (click)="scrollTo('about')">About</a>
+      <a (click)="scrollTo('services')">Services</a>
       <a (click)="scrollTo('collection')">Collection</a>
       <a (click)="scrollTo('process')">Process</a>
       <a href="https://www.instagram.com/bella_sposa_bridal?igsh=aXpxbTIxYjcxNmEw" target="_blank" rel="noopener">Instagram</a>
     </nav>
-    <p class="footer-copy">&copy; {{ currentYear }} Bella Sposa Bridal. All rights reserved.</p>
+    <p class="footer-copy">&copy; {{ currentYear }} Bella Sposa Bridal · London. All rights reserved.</p>
   </div>
 </footer>
