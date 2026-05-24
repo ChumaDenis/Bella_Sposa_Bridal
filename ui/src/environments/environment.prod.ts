@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiBase: 'https://ТВІЙ_RAILWAY_URL/api'
+  apiBase: 'https://bellasposabridal-production.up.railway.app/api'
 };
