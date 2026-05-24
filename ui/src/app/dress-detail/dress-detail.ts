@@ -1,10 +1,10 @@
 import {
-  Component, ChangeDetectionStrategy, OnInit, inject,
-  signal, AfterViewInit
+  Component, ChangeDetectionStrategy, OnInit, OnDestroy,
+  inject, signal, HostListener, ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { Subscription, forkJoin } from 'rxjs';
 import { NavbarComponent } from '../shared/navbar/navbar';
 import { FooterComponent } from '../shared/footer/footer';
 import { DressCardComponent } from '../catalog/components/dress-card/dress-card';
@@ -22,87 +22,120 @@ import { AtlierInfoDto } from '../core/models/atlier.model';
   styleUrl: './dress-detail.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DressDetailComponent implements OnInit, AfterViewInit {
-  private route = inject(ActivatedRoute);
+export class DressDetailComponent implements OnInit, OnDestroy {
+  private route      = inject(ActivatedRoute);
   private dressService = inject(DressService);
   private atlierService = inject(AtlierService);
-  private viewedDressesService = inject(ViewedDressesService);
-  private router = inject(Router);
+  private viewedSvc  = inject(ViewedDressesService);
+  private router     = inject(Router);
+  private cdr        = inject(ChangeDetectorRef);
 
-  dress = signal<DressDetailDto | null>(null);
-  atlier = signal<AtlierInfoDto | null>(null);
-  loading = signal(true);
-  selectedPhoto = signal<DressPhoto | null>(null);
+  dress            = signal<DressDetailDto | null>(null);
+  atlier           = signal<AtlierInfoDto | null>(null);
+  loading          = signal(true);
+  error            = signal(false);
   activePhotoIndex = signal(0);
+  lightboxOpen     = signal(false);
 
   private observer!: IntersectionObserver;
+  private routeSub!: Subscription;
 
   ngOnInit() {
-    const id = this.route.snapshot.paramMap.get('id')!;
-    this.viewedDressesService.add(id);
+    this.routeSub = this.route.paramMap.subscribe(params => {
+      const id = params.get('id')!;
+      this.load(id);
+    });
+  }
+
+  ngOnDestroy() {
+    this.observer?.disconnect();
+    this.routeSub?.unsubscribe();
+    document.body.style.overflow = '';
+  }
+
+  private load(id: string) {
+    this.loading.set(true);
+    this.error.set(false);
+    this.activePhotoIndex.set(0);
+    this.lightboxOpen.set(false);
+    this.viewedSvc.add(id);
 
     forkJoin({
-      dress: this.dressService.getById(id),
+      dress:  this.dressService.getById(id),
       atlier: this.atlierService.getInfo()
     }).subscribe({
       next: ({ dress, atlier }) => {
         this.dress.set(dress);
         this.atlier.set(atlier);
         this.loading.set(false);
-        setTimeout(() => this.initReveal(), 100);
+        window.scrollTo({ top: 0 });
+        setTimeout(() => this.initReveal(), 120);
+        this.cdr.markForCheck();
       },
       error: () => {
         this.loading.set(false);
+        this.error.set(true);
+        this.cdr.markForCheck();
       }
     });
   }
 
-  ngAfterViewInit() {
-    setTimeout(() => this.initReveal(), 200);
-  }
-
-  initReveal() {
-    if (this.observer) this.observer.disconnect();
-    this.observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          this.observer.unobserve(entry.target);
+  private initReveal() {
+    this.observer?.disconnect();
+    this.observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          this.observer.unobserve(e.target);
         }
       });
-    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
     document.querySelectorAll('.reveal').forEach(el => this.observer.observe(el));
   }
 
-  openLightbox(photo: DressPhoto) {
-    this.selectedPhoto.set(photo);
+  // ── Gallery ─────────────────────────────────────────────────────
+  setPhoto(index: number) { this.activePhotoIndex.set(index); }
+
+  get activePhoto(): DressPhoto | null {
+    const d = this.dress();
+    if (!d || !d.photos.length) return null;
+    return d.photos[this.activePhotoIndex()] ?? null;
+  }
+
+  // ── Lightbox ─────────────────────────────────────────────────────
+  openLightbox() {
+    this.lightboxOpen.set(true);
     document.body.style.overflow = 'hidden';
   }
 
   closeLightbox() {
-    this.selectedPhoto.set(null);
+    this.lightboxOpen.set(false);
     document.body.style.overflow = '';
   }
 
   prevPhoto() {
     const d = this.dress();
-    if (!d || !d.photos.length) return;
-    const idx = this.activePhotoIndex();
-    const newIdx = idx > 0 ? idx - 1 : d.photos.length - 1;
-    this.activePhotoIndex.set(newIdx);
-    this.selectedPhoto.set(d.photos[newIdx]);
+    if (!d?.photos.length) return;
+    const i = this.activePhotoIndex();
+    this.activePhotoIndex.set(i > 0 ? i - 1 : d.photos.length - 1);
   }
 
   nextPhoto() {
     const d = this.dress();
-    if (!d || !d.photos.length) return;
-    const idx = this.activePhotoIndex();
-    const newIdx = idx < d.photos.length - 1 ? idx + 1 : 0;
-    this.activePhotoIndex.set(newIdx);
-    this.selectedPhoto.set(d.photos[newIdx]);
+    if (!d?.photos.length) return;
+    const i = this.activePhotoIndex();
+    this.activePhotoIndex.set(i < d.photos.length - 1 ? i + 1 : 0);
   }
 
-  bookAppointment() {
-    this.router.navigate(['/appointment']);
+  @HostListener('document:keydown', ['$event'])
+  onKey(e: KeyboardEvent) {
+    if (!this.lightboxOpen()) return;
+    if (e.key === 'Escape')     this.closeLightbox();
+    if (e.key === 'ArrowLeft')  this.prevPhoto();
+    if (e.key === 'ArrowRight') this.nextPhoto();
   }
+
+  // ── Navigation ───────────────────────────────────────────────────
+  goToAppointment() { this.router.navigate(['/appointment']); }
+  goToCatalog()     { this.router.navigate(['/catalog']); }
 }
