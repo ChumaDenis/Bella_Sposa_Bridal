@@ -1,9 +1,11 @@
 import {
   Component, ChangeDetectionStrategy, OnDestroy, AfterViewInit,
-  ViewChild, ElementRef, HostListener, inject
+  ViewChild, ElementRef, HostListener, inject, signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
@@ -18,22 +20,31 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
 
   menuOpen = false;
   collectionMenuOpen = false;
-  private megaMenuTimer: ReturnType<typeof setTimeout> | null = null;
+  isHomePage = signal(true);
 
+  private megaMenuTimer: ReturnType<typeof setTimeout> | null = null;
+  private routerSub: Subscription | null = null;
   private router = inject(Router);
 
   ngAfterViewInit() {
+    this.isHomePage.set(this.router.url === '/');
     this.updateNavbar();
+
+    this.routerSub = this.router.events
+      .pipe(filter(e => e instanceof NavigationEnd))
+      .subscribe(() => {
+        this.isHomePage.set(this.router.url === '/');
+        this.updateNavbar();
+      });
   }
 
   ngOnDestroy() {
     if (this.megaMenuTimer) clearTimeout(this.megaMenuTimer);
+    this.routerSub?.unsubscribe();
   }
 
   @HostListener('window:scroll')
-  onScroll() {
-    this.updateNavbar();
-  }
+  onScroll() { this.updateNavbar(); }
 
   updateNavbar() {
     const nav = this.navbarEl?.nativeElement;
@@ -50,18 +61,16 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   }
 
   toggleMenu() { this.menuOpen = !this.menuOpen; }
-  closeMenu() { this.menuOpen = false; }
+  closeMenu()  { this.menuOpen = false; }
 
   navTo(section: string) {
     this.closeMenu();
     if (this.router.url === '/') {
       document.getElementById(section)?.scrollIntoView({ behavior: 'smooth' });
     } else {
-      this.router.navigate(['/']).then(() => {
-        setTimeout(() => {
-          document.getElementById(section)?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-      });
+      this.router.navigate(['/']).then(() =>
+        setTimeout(() => document.getElementById(section)?.scrollIntoView({ behavior: 'smooth' }), 150)
+      );
     }
   }
 

@@ -93,6 +93,24 @@
 .navbar.scrolled .logo-divider-diamond    { background: var(--gold); }
 .navbar.scrolled .logo-sub                { color: var(--dark-muted); }
 
+/* ─── SOLID: non-home pages ──────────────────── */
+/* Always show cream background + dark text (no transparent phase) */
+.navbar.solid {
+  background: rgba(253, 250, 246, 0.98);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.07);
+  backdrop-filter: blur(10px);
+}
+
+.navbar.solid .logo-main              { color: var(--dark); }
+.navbar.solid .logo-sub               { color: var(--dark-muted); }
+.navbar.solid .logo-divider-line      { background: rgba(184, 151, 90, 0.45); }
+.navbar.solid .logo-divider-diamond   { background: var(--gold); }
+.navbar.solid .nav-link               { color: var(--dark); }
+.navbar.solid .nav-link::after        { background: var(--gold); }
+.navbar.solid .nav-link-insta         { border-color: var(--gold); color: var(--gold); }
+.navbar.solid .nav-link-insta:hover   { background: rgba(184, 151, 90, 0.08); opacity: 1; }
+.navbar.solid .burger span            { background: var(--dark); }
+
 /* Drawer — always dark */
 .logo-wordmark--dark .logo-main           { color: var(--dark); }
 .logo-wordmark--dark .logo-divider-line   { background: rgba(184, 151, 90, 0.45); }

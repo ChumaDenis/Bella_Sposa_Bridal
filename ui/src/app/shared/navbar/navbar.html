@@ -1,5 +1,8 @@
 <!-- NAVBAR -->
-<nav class="navbar" #navbar [class.mega-open]="collectionMenuOpen" (mouseleave)="closeMegaMenu()">
+<nav class="navbar" #navbar
+     [class.mega-open]="collectionMenuOpen"
+     [class.solid]="!isHomePage()"
+     (mouseleave)="closeMegaMenu()">
   <div class="nav-inner">
 
     <!-- Left links -->
