@@ -134,13 +134,23 @@
             </div>
           }
 
-          <!-- Viewed dresses -->
-          @if (viewedDresses().length > 0) {
+          <!-- Liked / viewed dresses -->
+          @if (shownDresses().length > 0) {
             <div class="sidebar-card">
-              <h3>Dresses You Viewed</h3>
-              <p class="sidebar-hint">These will be noted for your fitting</p>
+              @if (usingLiked()) {
+                <h3>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#c0637a" stroke="#c0637a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:0.35rem">
+                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                  </svg>
+                  Liked Gowns
+                </h3>
+                <p class="sidebar-hint">Your favourite gowns will be ready for your fitting</p>
+              } @else {
+                <h3>Recently Viewed</h3>
+                <p class="sidebar-hint">These will be noted for your fitting</p>
+              }
               <div class="viewed-list">
-                @for (d of viewedDresses(); track d.id) {
+                @for (d of shownDresses(); track d.id) {
                   <div class="viewed-item">
                     @if (d.heroImageUrl) {
                       <img [src]="d.heroImageUrl" [alt]="d.name" />
@@ -149,7 +159,7 @@
                     }
                     <div>
                       <p class="viewed-name">{{ d.name }}</p>
-                      <p class="viewed-silhouette">{{ d.silhouette }}</p>
+                      <p class="viewed-silhouette">{{ d.collectionNames[0] ?? '' }}</p>
                     </div>
                   </div>
                 }

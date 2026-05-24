@@ -10,6 +10,7 @@ import { AppointmentService } from '../core/services/appointment.service';
 import { DressService } from '../core/services/dress.service';
 import { AtlierService } from '../core/services/atlier.service';
 import { ViewedDressesService } from '../core/services/viewed-dresses.service';
+import { LikedDressesService } from '../core/services/liked-dresses.service';
 import { DressListDto } from '../core/models/dress.model';
 import { AtlierInfoDto } from '../core/models/atlier.model';
 
@@ -24,15 +25,17 @@ import { AtlierInfoDto } from '../core/models/atlier.model';
 export class AppointmentComponent implements OnInit {
   private fb = inject(FormBuilder);
   private appointmentService = inject(AppointmentService);
-  private dressService = inject(DressService);
-  private atlierService = inject(AtlierService);
-  private viewedDressesService = inject(ViewedDressesService);
+  private dressService      = inject(DressService);
+  private atlierService     = inject(AtlierService);
+  private viewedSvc         = inject(ViewedDressesService);
+  private likedSvc          = inject(LikedDressesService);
 
-  loading = signal(false);
-  success = signal(false);
-  error = signal<string | null>(null);
-  viewedDresses = signal<DressListDto[]>([]);
-  atlier = signal<AtlierInfoDto | null>(null);
+  loading       = signal(false);
+  success       = signal(false);
+  error         = signal<string | null>(null);
+  shownDresses  = signal<DressListDto[]>([]);
+  usingLiked    = signal(false);
+  atlier        = signal<AtlierInfoDto | null>(null);
 
   form = this.fb.group({
     firstName: ['', Validators.required],
@@ -52,15 +55,19 @@ export class AppointmentComponent implements OnInit {
       error: () => {}
     });
 
-    // Load viewed dresses
-    const ids = this.viewedDressesService.getIds();
+    // Liked dresses take priority; fall back to recently viewed
+    const likedIds  = this.likedSvc.getIds();
+    const viewedIds = this.viewedSvc.getIds();
+    const ids = likedIds.length > 0 ? likedIds : viewedIds;
+    this.usingLiked.set(likedIds.length > 0);
+
     if (ids.length > 0) {
       this.dressService.getAll().subscribe({
-        next: (dresses) => {
-          const viewed = dresses.filter(d => ids.includes(d.id));
-          // Preserve order of viewed
-          const ordered = ids.map(id => viewed.find(d => d.id === id)).filter((d): d is DressListDto => !!d);
-          this.viewedDresses.set(ordered);
+        next: (all) => {
+          const matched = ids
+            .map(id => all.find(d => d.id === id))
+            .filter((d): d is DressListDto => !!d);
+          this.shownDresses.set(matched);
         },
         error: () => {}
       });
@@ -81,7 +88,8 @@ export class AppointmentComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    const viewedDressIds = this.viewedDressesService.getIds();
+    const likedIds  = this.likedSvc.getIds();
+    const viewedDressIds = likedIds.length > 0 ? likedIds : this.viewedSvc.getIds();
 
     this.appointmentService.create({
       firstName: value.firstName as string,

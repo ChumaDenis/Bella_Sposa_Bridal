@@ -200,6 +200,59 @@
   padding: 0.28rem 0.65rem;
 }
 
+/* Name row with like button */
+.dress-name-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.dress-name-row .dress-name {
+  margin-bottom: 0;
+}
+
+.like-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 50%;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease;
+  margin-top: 0.4rem;
+}
+
+.like-btn svg {
+  width: 18px; height: 18px;
+  fill: none;
+  color: var(--dark-muted);
+  transition: fill 0.25s ease, color 0.25s ease;
+}
+
+.like-btn:hover {
+  border-color: #c0637a;
+}
+
+.like-btn:hover svg {
+  color: #c0637a;
+}
+
+.like-btn.liked {
+  border-color: #c0637a;
+  background: rgba(192,99,122,0.06);
+}
+
+.like-btn.liked svg {
+  fill: #c0637a;
+  color: #c0637a;
+}
+
 /* Name & tagline */
 .dress-name {
   font-family: var(--font-serif);
@@ -208,7 +261,7 @@
   font-style: italic;
   line-height: 1.1;
   color: var(--dark);
-  margin-bottom: 0.6rem;
+  margin-bottom: 0;
 }
 
 .dress-tagline {

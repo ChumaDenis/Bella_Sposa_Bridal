@@ -107,8 +107,8 @@
 .navbar.solid .logo-divider-diamond   { background: var(--gold); }
 .navbar.solid .nav-link               { color: var(--dark); }
 .navbar.solid .nav-link::after        { background: var(--gold); }
-.navbar.solid .nav-link-insta         { border-color: var(--gold); color: var(--gold); }
-.navbar.solid .nav-link-insta:hover   { background: rgba(184, 151, 90, 0.08); opacity: 1; }
+.navbar.solid .nav-link-book         { border-color: var(--gold); color: var(--gold); }
+.navbar.solid .nav-link-book:hover   { background: rgba(184, 151, 90, 0.08); opacity: 1; }
 .navbar.solid .burger span            { background: var(--dark); }
 
 /* Drawer — always dark */
@@ -169,17 +169,20 @@
 .navbar.scrolled .nav-link        { color: var(--dark); }
 .navbar.scrolled .nav-link::after { background: var(--gold); }
 
-/* Instagram link — bordered pill style */
-.nav-link-insta {
-  border: 1px solid rgba(255,255,255,0.35);
-  padding: 0.38rem 0.85rem;
+/* Book a Fitting — bordered pill CTA */
+.nav-link-book {
+  border: 1px solid rgba(255,255,255,0.4);
+  padding: 0.38rem 0.95rem;
 }
 
-.nav-link-insta::after { display: none; }
-.nav-link-insta:hover  { opacity: 1; background: rgba(255,255,255,0.1); }
+.nav-link-book::after { display: none; }
+.nav-link-book:hover  { opacity: 1; background: rgba(255,255,255,0.1); }
 
-.navbar.scrolled .nav-link-insta       { border-color: var(--gold); color: var(--gold); }
-.navbar.scrolled .nav-link-insta:hover { background: rgba(184,151,90,0.08); }
+.navbar.scrolled .nav-link-book       { border-color: var(--gold); color: var(--gold); }
+.navbar.scrolled .nav-link-book:hover { background: rgba(184,151,90,0.08); opacity: 1; }
+
+.navbar.solid .nav-link-book          { border-color: var(--gold); color: var(--gold); }
+.navbar.solid .nav-link-book:hover    { background: rgba(184,151,90,0.08); opacity: 1; }
 
 /* Burger (mobile only — hidden on desktop) */
 .burger {
@@ -338,7 +341,7 @@
 
 .navbar.mega-open .nav-link              { color: var(--dark); }
 .navbar.mega-open .nav-link::after       { background: var(--gold); }
-.navbar.mega-open .nav-link-insta        { border-color: var(--gold); color: var(--gold); }
+.navbar.mega-open .nav-link-book        { border-color: var(--gold); color: var(--gold); }
 .navbar.mega-open .logo-main             { color: var(--dark); }
 .navbar.mega-open .logo-divider-line     { background: rgba(184,151,90,0.45); }
 .navbar.mega-open .logo-divider-diamond  { background: var(--gold); }

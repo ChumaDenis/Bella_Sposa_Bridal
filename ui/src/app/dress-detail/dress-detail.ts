@@ -11,6 +11,7 @@ import { DressCardComponent } from '../catalog/components/dress-card/dress-card'
 import { DressService } from '../core/services/dress.service';
 import { AtlierService } from '../core/services/atlier.service';
 import { ViewedDressesService } from '../core/services/viewed-dresses.service';
+import { LikedDressesService } from '../core/services/liked-dresses.service';
 import { DressDetailDto, DressPhoto, SILHOUETTE_LABELS } from '../core/models/dress.model';
 import { AtlierInfoDto } from '../core/models/atlier.model';
 
@@ -27,6 +28,7 @@ export class DressDetailComponent implements OnInit, OnDestroy {
   private dressService = inject(DressService);
   private atlierService = inject(AtlierService);
   private viewedSvc   = inject(ViewedDressesService);
+  private likedSvc    = inject(LikedDressesService);
   private router      = inject(Router);
   private cdr         = inject(ChangeDetectorRef);
 
@@ -37,6 +39,7 @@ export class DressDetailComponent implements OnInit, OnDestroy {
   activePhotoIndex = signal(0);
   lightboxOpen     = signal(false);
   detailsOpen      = signal(false);
+  liked            = signal(false);
 
   private observer!: IntersectionObserver;
   private routeSub!: Subscription;
@@ -60,6 +63,7 @@ export class DressDetailComponent implements OnInit, OnDestroy {
     this.activePhotoIndex.set(0);
     this.lightboxOpen.set(false);
     this.detailsOpen.set(false);
+    this.liked.set(this.likedSvc.isLiked(id));
     this.viewedSvc.add(id);
 
     forkJoin({
@@ -93,6 +97,13 @@ export class DressDetailComponent implements OnInit, OnDestroy {
       });
     }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
     document.querySelectorAll('.reveal').forEach(el => this.observer.observe(el));
+  }
+
+  toggleLike() {
+    const d = this.dress();
+    if (!d) return;
+    const nowLiked = this.likedSvc.toggle(d.id);
+    this.liked.set(nowLiked);
   }
 
   silhouetteLabel(n: number): string {
