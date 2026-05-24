@@ -309,6 +309,34 @@ input[type="radio"] {
   display: flex;
   gap: 0.75rem;
   align-items: center;
+  text-decoration: none;
+  padding: 0.35rem 0.5rem 0.35rem 0;
+  margin: 0 -0.5rem 0 0;
+  border-radius: 2px;
+  transition: background 0.2s ease;
+  cursor: pointer;
+}
+
+.viewed-item:hover {
+  background: rgba(0,0,0,0.03);
+}
+
+.viewed-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.viewed-arrow {
+  flex-shrink: 0;
+  color: var(--gold);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.viewed-item:hover .viewed-arrow {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .viewed-item img {
