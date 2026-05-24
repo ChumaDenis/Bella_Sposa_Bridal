@@ -368,14 +368,18 @@
   padding: 5.5rem 3rem 0;
 }
 
-/* ── Collection panels ────────────────────────── */
-.mega-col-panel {
-  border-top: 1px solid rgba(0,0,0,0.07);
-  transition: background 0.25s ease;
+/* ── Backdrop (closes menu on move to page content) ── */
+.mega-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 94;
+  background: transparent;
+  pointer-events: auto;
 }
 
-.mega-col-panel:last-child {
-  border-bottom: 1px solid rgba(0,0,0,0.07);
+/* ── Collection panels ────────────────────────── */
+.mega-col-panel {
+  transition: background 0.25s ease;
 }
 
 .mega-col-header {
@@ -419,19 +423,6 @@
   color: var(--dark);
 }
 
-.mega-col-chevron {
-  width: 17px; height: 17px;
-  flex-shrink: 0;
-  color: var(--dark-muted);
-  transform: rotate(0deg);
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
-}
-
-.mega-col-panel.expanded .mega-col-chevron {
-  transform: rotate(180deg);
-  color: var(--gold);
-}
-
 /* ── Accordion body ───────────────────────────── */
 .mega-col-body {
   display: grid;
@@ -448,9 +439,9 @@
 }
 
 .mega-col-panel.expanded .mega-col-body {
-  max-height: 300px;
+  max-height: 380px;
   opacity: 1;
-  padding-bottom: 2rem;
+  padding-bottom: 2.25rem;
 }
 
 .mega-col-desc {
@@ -492,7 +483,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.75rem;
-  height: 210px;
+  height: 270px;
 }
 
 .mega-photo {

@@ -82,7 +82,12 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   }
 
   closeMegaMenu() {
-    this.megaMenuTimer = setTimeout(() => { this.collectionMenuOpen = false; }, 200);
+    this.megaMenuTimer = setTimeout(() => { this.collectionMenuOpen = false; }, 150);
+  }
+
+  closeMegaMenuNow() {
+    if (this.megaMenuTimer) clearTimeout(this.megaMenuTimer);
+    this.collectionMenuOpen = false;
   }
 
   expandCollection(id: string) {
