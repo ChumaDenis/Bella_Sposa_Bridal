@@ -54,21 +54,71 @@
   padding-bottom: 5rem;
 }
 
-/* ─── LEFT: Photo stack ───────────────────────────────────────── */
+/* ─── LEFT: Gallery ───────────────────────────────────────────── */
 .photo-col {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 0.6rem;
+  align-items: start;
 }
 
-.photo-item {
-  position: relative;
+/* when there is only one photo — no thumbs column */
+.photo-col:has(.photo-main:only-child),
+.photo-col:not(:has(.photo-thumbs)) {
+  grid-template-columns: 1fr;
+}
+
+/* Thumbnail strip */
+.photo-thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  position: sticky;
+  top: 5.5rem;
+  max-height: calc(100dvh - 7rem);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.photo-thumbs::-webkit-scrollbar { display: none; }
+
+.photo-thumb {
+  width: 100%;
+  aspect-ratio: 2 / 3;
   overflow: hidden;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  background: var(--champagne);
+  padding: 0;
+  transition: border-color 0.3s ease;
+  flex-shrink: 0;
+}
+
+.photo-thumb.active {
+  border-color: var(--gold);
+}
+
+.photo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.photo-thumb:hover img { transform: scale(1.06); }
+
+/* Main photo */
+.photo-main {
+  position: sticky;
+  top: 5.5rem;
   cursor: zoom-in;
+  overflow: hidden;
   background: var(--champagne);
 }
 
-.photo-item img {
+.photo-main img {
   width: 100%;
   height: auto;
   display: block;
@@ -76,9 +126,7 @@
   object-fit: cover;
 }
 
-.photo-item:hover img {
-  transform: scale(1.03);
-}
+.photo-main:hover img { transform: scale(1.03); }
 
 .photo-zoom-hint {
   position: absolute;
@@ -96,7 +144,7 @@
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.photo-item:hover .photo-zoom-hint {
+.photo-main:hover .photo-zoom-hint {
   opacity: 1;
   transform: scale(1);
 }
@@ -638,6 +686,35 @@
     gap: 0;
     padding-top: 1.5rem;
     padding-bottom: 3rem;
+  }
+
+  /* On mobile: thumbs go horizontal below the main photo */
+  .photo-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .photo-thumbs {
+    position: static;
+    flex-direction: row;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: visible;
+    gap: 0.4rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .photo-thumb {
+    width: 60px;
+    height: 80px;
+    aspect-ratio: unset;
+    flex-shrink: 0;
+  }
+
+  .photo-main {
+    position: static;
+    order: -1;
   }
 
   .info-col {
