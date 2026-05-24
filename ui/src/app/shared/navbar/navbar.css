@@ -349,13 +349,11 @@
 .mega-menu {
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: 54vh;
   background: var(--cream);
   z-index: 95;
   transform: translateY(-100%);
   transition: transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.1);
-  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
 }
 
 .mega-menu.open {
@@ -363,40 +361,112 @@
 }
 
 .mega-inner {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 5rem;
+  display: flex;
+  flex-direction: column;
+  padding-top: 4.5rem;
+  padding-bottom: 0;
+}
+
+/* ── Collection panels ────────────────────────── */
+.mega-col-panel {
+  border-top: 1px solid rgba(0,0,0,0.07);
+  transition: background 0.25s ease;
+}
+
+.mega-col-panel:last-child {
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+}
+
+.mega-col-header {
+  display: flex;
   align-items: center;
-  height: 100%;
-  padding-top: 5rem;
-  padding-bottom: 2.5rem;
+  justify-content: space-between;
+  padding: 1rem 0;
+  cursor: pointer;
+  gap: 1rem;
+  user-select: none;
 }
 
-.mega-title {
+.mega-col-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.mega-col-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.mega-col-name {
   font-family: var(--font-serif);
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(1.15rem, 2.2vw, 1.6rem);
   font-weight: 300;
-  line-height: 1.1;
-  color: var(--dark);
-  margin: 0.5rem 0 1rem;
+  line-height: 1.15;
+  margin: 0;
+  transition: color 0.3s ease;
 }
 
-.mega-title em { font-style: italic; color: var(--gold); }
-
-.mega-desc {
-  font-size: 0.85rem;
-  font-weight: 300;
-  line-height: 1.8;
+.mega-col-panel:not(.expanded) .mega-col-name {
   color: var(--dark-muted);
-  margin-bottom: 1.75rem;
 }
 
+.mega-col-panel.expanded .mega-col-name {
+  color: var(--dark);
+}
+
+.mega-col-chevron {
+  width: 17px; height: 17px;
+  flex-shrink: 0;
+  color: var(--dark-muted);
+  transform: rotate(0deg);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
+}
+
+.mega-col-panel.expanded .mega-col-chevron {
+  transform: rotate(180deg);
+  color: var(--gold);
+}
+
+/* ── Accordion body ───────────────────────────── */
+.mega-col-body {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 3.5rem;
+  align-items: start;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height 0.48s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.32s ease,
+    padding-bottom 0.3s ease;
+}
+
+.mega-col-panel.expanded .mega-col-body {
+  max-height: 300px;
+  opacity: 1;
+  padding-bottom: 2rem;
+}
+
+.mega-col-desc {
+  font-size: 0.84rem;
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--dark-muted);
+  margin-bottom: 1.2rem;
+}
+
+/* CTA link */
 .mega-cta {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.55rem;
   font-family: var(--font-sans);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 500;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -414,13 +484,14 @@
   background: var(--gold);
 }
 
-.mega-cta:hover { color: var(--gold); gap: 1rem; }
+.mega-cta:hover { color: var(--gold); gap: 0.9rem; }
 
-.mega-photos {
+/* ── Photo grid inside body ───────────────────── */
+.mega-col-photos {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  height: calc(54vh - 7.5rem);
+  gap: 0.75rem;
+  height: 210px;
 }
 
 .mega-photo {
@@ -438,19 +509,23 @@
   display: block;
 }
 
-.mega-photo:hover img { transform: scale(1.05); }
+.mega-photo:hover img { transform: scale(1.06); }
+
+.mega-photo--cover {
+  grid-column: 1 / -1;
+}
 
 .mega-photo-label {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  padding: 1.5rem 1rem 0.75rem;
+  padding: 1.2rem 0.8rem 0.6rem;
   background: linear-gradient(to top, rgba(27,44,66,0.72), transparent);
   font-family: var(--font-serif);
   font-style: italic;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   color: var(--white);
   opacity: 0;
-  transform: translateY(6px);
+  transform: translateY(5px);
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 

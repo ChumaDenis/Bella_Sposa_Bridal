@@ -98,33 +98,54 @@
      (mouseleave)="closeMegaMenu()">
   <div class="mega-inner container">
 
-    <div class="mega-text">
-      <span class="section-label">Bella Sposa</span>
-      <h2 class="mega-title">Collection<br><em>2026</em></h2>
-      <p class="mega-desc">Exquisite silhouettes handcrafted in London. Each gown is a story waiting to be worn.</p>
-      <a class="mega-cta" (click)="goToCatalog()">
-        View Full Collection
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="5" y1="12" x2="19" y2="12"/>
-          <polyline points="12 5 19 12 12 19"/>
-        </svg>
-      </a>
-    </div>
+    @for (col of collections(); track col.id) {
+      <div class="mega-col-panel"
+           [class.expanded]="expandedCollectionId() === col.id"
+           (mouseenter)="expandCollection(col.id)">
 
-    <div class="mega-photos">
-      <div class="mega-photo">
-        <img src="/images/cover-1.jpg" alt="Lace &amp; Grace" loading="eager" />
-        <div class="mega-photo-label">Lace &amp; Grace</div>
+        <!-- Header row — always visible -->
+        <div class="mega-col-header" (click)="goToCollection(col.id)">
+          <div class="mega-col-heading">
+            <span class="mega-col-eyebrow">{{ col.season }} {{ col.year }}</span>
+            <h3 class="mega-col-name">{{ col.name }}</h3>
+          </div>
+          <svg class="mega-col-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+
+        <!-- Expandable body -->
+        <div class="mega-col-body">
+          <div class="mega-col-text">
+            @if (col.description) {
+              <p class="mega-col-desc">{{ col.description }}</p>
+            }
+            <a class="mega-cta" (click)="goToCollection(col.id)">
+              View Collection
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </a>
+          </div>
+
+          <div class="mega-col-photos">
+            @for (dress of (collectionDresses()[col.id] ?? []).slice(0, 3); track dress.id) {
+              <div class="mega-photo" (click)="goToDress(dress.id)">
+                <img [src]="dress.heroImageUrl ?? col.coverImageUrl ?? ''" [alt]="dress.name" loading="eager" />
+                <div class="mega-photo-label">{{ dress.name }}</div>
+              </div>
+            }
+            @if ((collectionDresses()[col.id] ?? []).length === 0 && col.coverImageUrl) {
+              <div class="mega-photo mega-photo--cover" (click)="goToCollection(col.id)">
+                <img [src]="col.coverImageUrl" [alt]="col.name" loading="eager" />
+              </div>
+            }
+          </div>
+        </div>
+
       </div>
-      <div class="mega-photo">
-        <img src="/images/cover-2.jpg" alt="Grand Romance" loading="eager" />
-        <div class="mega-photo-label">Grand Romance</div>
-      </div>
-      <div class="mega-photo">
-        <img src="/images/cover-3.jpg" alt="Ethereal Silk" loading="eager" />
-        <div class="mega-photo-label">Ethereal Silk</div>
-      </div>
-    </div>
+    }
 
   </div>
 </div>
