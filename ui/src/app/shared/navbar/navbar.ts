@@ -38,13 +38,13 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   private routerSub: Subscription | null = null;
 
   ngAfterViewInit() {
-    this.isHomePage.set(this.router.url === '/');
+    this.isHomePage.set(this.hasTransparentHero(this.router.url));
     this.updateNavbar();
 
     this.routerSub = this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe(() => {
-        this.isHomePage.set(this.router.url === '/');
+        this.isHomePage.set(this.hasTransparentHero(this.router.url));
         this.updateNavbar();
       });
 
@@ -88,6 +88,10 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   closeMegaMenuNow() {
     if (this.megaMenuTimer) clearTimeout(this.megaMenuTimer);
     this.collectionMenuOpen = false;
+  }
+
+  private hasTransparentHero(url: string): boolean {
+    return url === '/' || url === '/appointment';
   }
 
   expandCollection(id: string) {
