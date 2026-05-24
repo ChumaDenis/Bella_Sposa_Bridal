@@ -1,0 +1,63 @@
+<app-navbar />
+
+@if (loading()) {
+  <div class="cd-hero cd-hero--loading"></div>
+} @else if (notFound()) {
+  <section class="cd-not-found">
+    <p>Collection not found.</p>
+    <button class="btn-dark" (click)="goBack()">Back to Collections</button>
+  </section>
+} @else if (collection(); as col) {
+
+  <!-- Hero -->
+  <section class="cd-hero">
+    @if (col.coverImageUrl) {
+      <img class="cd-hero-bg" [src]="col.coverImageUrl" [alt]="col.name" />
+    }
+    <div class="cd-hero-overlay"></div>
+    <div class="cd-hero-content">
+      <div class="cd-hero-inner">
+        <p class="cd-eyebrow">{{ col.season }} {{ col.year }}</p>
+        <h1 class="cd-title">{{ col.name }}</h1>
+        @if (col.description) {
+          <p class="cd-desc">{{ col.description }}</p>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Dresses -->
+  <section class="cd-body">
+    <div class="cd-container">
+
+      <div class="cd-breadcrumb">
+        <a class="cd-back" (click)="goBack()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/>
+            <polyline points="12 19 5 12 12 5"/>
+          </svg>
+          All Collections
+        </a>
+        <span class="cd-breadcrumb-sep">/</span>
+        <span class="cd-breadcrumb-current">{{ col.name }}</span>
+      </div>
+
+      @if (dresses().length === 0) {
+        <div class="cd-empty">
+          <p>No gowns available in this collection yet.</p>
+          <a class="btn-dark" (click)="goBack()">View All Collections</a>
+        </div>
+      } @else {
+        <div class="cd-grid">
+          @for (dress of dresses(); track dress.id) {
+            <app-dress-card [dress]="dress" />
+          }
+        </div>
+      }
+
+    </div>
+  </section>
+
+}
+
+<app-footer />

@@ -91,7 +91,7 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   }
 
   private hasTransparentHero(url: string): boolean {
-    return url === '/' || url === '/appointment';
+    return url === '/' || url === '/appointment' || url.startsWith('/collections/');
   }
 
   expandCollection(id: string) {
@@ -119,13 +119,19 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   }
 
   goToCollection(id: string) {
-    this.closeMegaMenu();
+    this.closeMegaMenuNow();
     this.closeMenu();
-    this.router.navigate(['/catalog'], { queryParams: { collection: id } });
+    this.router.navigate(['/collections', id]);
+  }
+
+  goToCollections() {
+    this.closeMegaMenuNow();
+    this.closeMenu();
+    this.router.navigate(['/collections']);
   }
 
   goToDress(id: string) {
-    this.closeMegaMenu();
+    this.closeMegaMenuNow();
     this.router.navigate(['/catalog', id]);
   }
 

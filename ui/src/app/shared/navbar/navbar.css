@@ -529,6 +529,34 @@
   transform: translateY(0);
 }
 
+/* ── View All Collections footer ─────────────── */
+.mega-footer-row {
+  padding: 1.25rem 0 2rem;
+  border-top: 1px solid rgba(0,0,0,0.07);
+  display: flex;
+  justify-content: center;
+  margin-top: 0.25rem;
+}
+
+.mega-view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dark-muted);
+  cursor: pointer;
+  transition: color 0.3s ease, gap 0.3s ease;
+}
+
+.mega-view-all:hover {
+  color: var(--gold);
+  gap: 0.9rem;
+}
+
 /* ─── RESPONSIVE ─────────────────────────────── */
 @media (max-width: 768px) {
   .mega-menu { display: none; }

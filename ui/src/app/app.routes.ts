@@ -15,5 +15,13 @@ export const routes: Routes = [
     path: 'appointment',
     loadComponent: () => import('./appointment/appointment').then(m => m.AppointmentComponent)
   },
+  {
+    path: 'collections',
+    loadComponent: () => import('./collections/collections').then(m => m.CollectionsComponent)
+  },
+  {
+    path: 'collections/:id',
+    loadComponent: () => import('./collection-detail/collection-detail').then(m => m.CollectionDetailComponent)
+  },
   { path: '**', redirectTo: '' }
 ];

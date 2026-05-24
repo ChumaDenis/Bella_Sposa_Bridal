@@ -1,7 +1,13 @@
-import { Component, OnDestroy, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import {
+  Component, OnDestroy, OnInit, ElementRef, ViewChild, AfterViewInit, inject, signal
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { NavbarComponent } from '../shared/navbar/navbar';
 import { FooterComponent } from '../shared/footer/footer';
+import { DressService } from '../core/services/dress.service';
+import { ViewedDressesService } from '../core/services/viewed-dresses.service';
+import { DressListDto } from '../core/models/dress.model';
 
 @Component({
   selector: 'app-home',
@@ -9,16 +15,34 @@ import { FooterComponent } from '../shared/footer/footer';
   templateUrl: './home.html',
   styleUrl: './home.css'
 })
-export class Home implements AfterViewInit, OnDestroy {
+export class Home implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('heroSection') heroSection!: ElementRef<HTMLElement>;
   @ViewChild('heroVideo')  heroVideo!:  ElementRef<HTMLVideoElement>;
   @ViewChild('aboutVideo') aboutVideo!: ElementRef<HTMLVideoElement>;
 
+  private dressService = inject(DressService);
+  private viewedSvc    = inject(ViewedDressesService);
+  private router       = inject(Router);
+
   isMuted      = true;
   isAboutMuted = true;
 
+  featuredDresses  = signal<DressListDto[]>([]);
+  dressesLoading   = signal(true);
+
   private observer!:            IntersectionObserver;
   private aboutVideoObserver!:  IntersectionObserver;
+
+  ngOnInit() {
+    this.dressService.getAll().subscribe({
+      next: (all) => {
+        this.featuredDresses.set(all.slice(0, 6));
+        this.dressesLoading.set(false);
+        setTimeout(() => this.reObserveReveal(), 80);
+      },
+      error: () => this.dressesLoading.set(false)
+    });
+  }
 
   ngAfterViewInit() {
     this.initScrollReveal();
@@ -55,6 +79,10 @@ export class Home implements AfterViewInit, OnDestroy {
     setTimeout(() => {
       document.querySelectorAll('.reveal').forEach(el => this.observer.observe(el));
     }, 100);
+  }
+
+  reObserveReveal() {
+    document.querySelectorAll('.reveal:not(.revealed)').forEach(el => this.observer?.observe(el));
   }
 
   private initCursor() {
@@ -109,14 +137,18 @@ export class Home implements AfterViewInit, OnDestroy {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   }
 
-  readonly dresses = [
-    { src: '/images/dress-1.jpg', alt: 'Ball gown, off-shoulder' },
-    { src: '/images/dress-2.jpg', alt: 'A-line with statement bow' },
-    { src: '/images/dress-3.jpg', alt: 'Mermaid with overskirt' },
-    { src: '/images/dress-4.jpg', alt: 'Mermaid, back silhouette' },
-    { src: '/images/dress-5.jpg', alt: 'Ball gown with cascading ruffles' },
-    { src: '/images/dress-6.jpg', alt: 'Minimalist satin column' },
-  ];
+  goToDress(id: string) {
+    this.viewedSvc.add(id);
+    this.router.navigate(['/catalog', id]);
+  }
+
+  goToCatalog() {
+    this.router.navigate(['/catalog']);
+  }
+
+  goToAppointment() {
+    this.router.navigate(['/appointment']);
+  }
 
   readonly marqueeItems = [
     'Bridal Couture', 'Wedding Salon', 'Bella Sposa', 'Bespoke Gowns',
