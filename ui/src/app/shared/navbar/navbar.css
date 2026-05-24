@@ -363,8 +363,9 @@
 .mega-inner {
   display: flex;
   flex-direction: column;
-  padding-top: 4.5rem;
-  padding-bottom: 0;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 5.5rem 3rem 0;
 }
 
 /* ── Collection panels ────────────────────────── */
