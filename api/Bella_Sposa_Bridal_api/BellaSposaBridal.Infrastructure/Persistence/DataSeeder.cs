@@ -6,10 +6,27 @@ namespace BellaSposaBridal.Infrastructure.Persistence;
 
 public static class DataSeeder
 {
-    private const string ImgBase = "http://localhost:4200/images";
+    private const string ImgBase = "/images";
 
     public static async Task SeedAsync(AppDbContext ctx)
     {
+        // Fix localhost URLs left from local development
+        const string oldBase = "http://localhost:4200/images";
+        if (await ctx.DressPhotos.AnyAsync(p => p.Url.StartsWith(oldBase)))
+        {
+            await ctx.DressPhotos
+                .Where(p => p.Url.StartsWith(oldBase))
+                .ExecuteUpdateAsync(s => s.SetProperty(
+                    p => p.Url, p => ImgBase + p.Url.Substring(oldBase.Length)));
+        }
+        if (await ctx.Collections.AnyAsync(c => c.CoverImageUrl != null && c.CoverImageUrl.StartsWith(oldBase)))
+        {
+            await ctx.Collections
+                .Where(c => c.CoverImageUrl != null && c.CoverImageUrl.StartsWith(oldBase))
+                .ExecuteUpdateAsync(s => s.SetProperty(
+                    c => c.CoverImageUrl, c => ImgBase + c.CoverImageUrl!.Substring(oldBase.Length)));
+        }
+
         if (await ctx.Dresses.AnyAsync()) return;
 
         var now = DateTime.UtcNow;
