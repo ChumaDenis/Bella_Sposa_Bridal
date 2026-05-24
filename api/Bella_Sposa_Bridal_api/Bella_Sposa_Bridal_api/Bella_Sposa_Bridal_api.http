@@ -1,0 +1,13 @@
+@Bella_Sposa_Bridal_api_HostAddress = http://localhost:5295
+
+#if (EnableOpenAPI)
+GET {{Bella_Sposa_Bridal_api_HostAddress}}/openapi/v1.json
+Accept: application/json
+
+###
+#endif
+
+GET {{Bella_Sposa_Bridal_api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

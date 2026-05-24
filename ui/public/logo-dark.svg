@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="150" viewBox="0 0 520 150">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400&amp;family=Montserrat:wght@500&amp;display=swap');
+    </style>
+  </defs>
+
+  <!-- Bella Sposa — Cormorant Garamond Italic -->
+  <text
+    x="260" y="78"
+    font-family="'Cormorant Garamond', Georgia, serif"
+    font-size="66"
+    font-style="italic"
+    font-weight="400"
+    fill="#1B2C42"
+    text-anchor="middle"
+    letter-spacing="1"
+  >Bella Sposa</text>
+
+  <!-- Divider: left line -->
+  <line x1="62" y1="96" x2="247" y2="96" stroke="#B8975A" stroke-width="0.8"/>
+
+  <!-- Diamond -->
+  <rect x="256.5" y="92" width="7" height="7" fill="#B8975A" transform="rotate(45 260 96)"/>
+
+  <!-- Divider: right line -->
+  <line x1="273" y1="96" x2="458" y2="96" stroke="#B8975A" stroke-width="0.8"/>
+
+  <!-- WEDDING SALON — Montserrat -->
+  <text
+    x="257" y="120"
+    font-family="'Montserrat', Arial, sans-serif"
+    font-size="10.5"
+    font-weight="500"
+    fill="#B8975A"
+    text-anchor="middle"
+    letter-spacing="5.5"
+  >WEDDING SALON</text>
+</svg>

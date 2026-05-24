@@ -1,0 +1,28 @@
+# ─── .NET / ASP.NET Core ───────────────────────────────────────────
+**/bin/
+**/obj/
+*.user
+.vs/
+*.suo
+*.userprefs
+appsettings.*.json
+!appsettings.Development.json
+
+# ─── Node / React ──────────────────────────────────────────────────
+# (ui/.gitignore handles most of this; extras below)
+**/.next/
+**/dist/
+**/out/
+
+# ─── IDE / OS ──────────────────────────────────────────────────────
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# ─── Claude Code ───────────────────────────────────────────────────
+.claude/
