@@ -16,6 +16,8 @@ public class AppDbContext : DbContext
     public DbSet<DressSize> DressSizes => Set<DressSize>();
     public DbSet<RelatedDress> RelatedDresses => Set<RelatedDress>();
     public DbSet<AtlierInfo> AtlierInfos => Set<AtlierInfo>();
+    public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<AppointmentViewedDress> AppointmentViewedDresses => Set<AppointmentViewedDress>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
