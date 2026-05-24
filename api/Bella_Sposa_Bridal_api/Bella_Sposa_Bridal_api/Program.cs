@@ -1,6 +1,7 @@
 using BellaSposaBridal.Application;
 using BellaSposaBridal.Infrastructure;
 using BellaSposaBridal.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
