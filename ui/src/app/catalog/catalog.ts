@@ -9,7 +9,7 @@ import { FooterComponent } from '../shared/footer/footer';
 import { DressCardComponent } from './components/dress-card/dress-card';
 import { DressService } from '../core/services/dress.service';
 import { CollectionService } from '../core/services/collection.service';
-import { DressListDto } from '../core/models/dress.model';
+import { DressListDto, SILHOUETTE_LABELS } from '../core/models/dress.model';
 import { CollectionDto } from '../core/models/collection.model';
 
 @Component({
@@ -27,8 +27,10 @@ export class CatalogComponent implements OnInit, AfterViewInit {
   dresses = signal<DressListDto[]>([]);
   collections = signal<CollectionDto[]>([]);
   activeCollection = signal<string | null>(null);
-  activeSilhouette = signal<string | null>(null);
+  activeSilhouette = signal<number | null>(null);
   loading = signal(true);
+
+  readonly silhouetteLabels = SILHOUETTE_LABELS;
 
   private observer!: IntersectionObserver;
 
@@ -41,14 +43,14 @@ export class CatalogComponent implements OnInit, AfterViewInit {
         cn => this.collections().find(c => c.id === col)?.name === cn
       ));
     }
-    if (sil) {
+    if (sil !== null) {
       result = result.filter(d => d.silhouette === sil);
     }
     return result;
   });
 
   silhouettes = computed(() => {
-    const all = this.dresses().map(d => d.silhouette).filter(Boolean);
+    const all = this.dresses().map(d => d.silhouette);
     return [...new Set(all)];
   });
 
@@ -92,8 +94,8 @@ export class CatalogComponent implements OnInit, AfterViewInit {
     setTimeout(() => this.initReveal(), 50);
   }
 
-  selectSilhouette(name: string | null) {
-    this.activeSilhouette.set(name);
+  selectSilhouette(sil: number | null) {
+    this.activeSilhouette.set(sil);
     setTimeout(() => this.initReveal(), 50);
   }
 }

@@ -11,7 +11,7 @@ import { DressCardComponent } from '../catalog/components/dress-card/dress-card'
 import { DressService } from '../core/services/dress.service';
 import { AtlierService } from '../core/services/atlier.service';
 import { ViewedDressesService } from '../core/services/viewed-dresses.service';
-import { DressDetailDto, DressPhoto } from '../core/models/dress.model';
+import { DressDetailDto, DressPhoto, SILHOUETTE_LABELS } from '../core/models/dress.model';
 import { AtlierInfoDto } from '../core/models/atlier.model';
 
 @Component({
@@ -133,6 +133,10 @@ export class DressDetailComponent implements OnInit, OnDestroy {
     if (e.key === 'Escape')     this.closeLightbox();
     if (e.key === 'ArrowLeft')  this.prevPhoto();
     if (e.key === 'ArrowRight') this.nextPhoto();
+  }
+
+  silhouetteLabel(n: number): string {
+    return SILHOUETTE_LABELS[n] ?? 'Classic';
   }
 
   // ── Navigation ───────────────────────────────────────────────────

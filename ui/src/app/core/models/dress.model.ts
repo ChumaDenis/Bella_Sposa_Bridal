@@ -4,11 +4,22 @@ export interface DressListDto {
   id: string;
   name: string;
   tagline: string;
-  silhouette: string;
+  silhouette: number;
   color: string;
   heroImageUrl: string | null;
   collectionNames: string[];
 }
+
+export const SILHOUETTE_LABELS: Record<number, string> = {
+  0: 'Mermaid',
+  1: 'Ball Gown',
+  2: 'A-Line',
+  3: 'Sheath',
+  4: 'Empire',
+  5: 'Trumpet',
+  6: 'Tea Length',
+  7: 'Mini',
+};
 
 export interface DressPhoto {
   id: string;
@@ -30,7 +41,7 @@ export interface DressDetailDto {
   name: string;
   tagline: string;
   description: string;
-  silhouette: string;
+  silhouette: number;
   material: string;
   corsetType: string;
   trainDescription: string | null;
@@ -39,7 +50,7 @@ export interface DressDetailDto {
   sleeveDescription: string | null;
   decoration: string | null;
   customTailoringAvailable: boolean;
-  collections: CollectionDto[];
+  collectionNames: string[];
   photos: DressPhoto[];
   videos: DressVideo[];
   sizes: string[];

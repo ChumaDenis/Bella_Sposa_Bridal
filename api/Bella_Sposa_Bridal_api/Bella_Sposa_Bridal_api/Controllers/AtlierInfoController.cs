@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Bella_Sposa_Bridal_api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/atlier")]
 public class AtlierInfoController : ControllerBase
 {
     private readonly IAtlierInfoService _atlierInfoService;
