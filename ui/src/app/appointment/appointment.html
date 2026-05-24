@@ -1,0 +1,167 @@
+<app-navbar />
+
+<section class="appt-hero">
+  <div class="appt-hero-text">
+    <p class="appt-eyebrow">Begin Your Journey</p>
+    <h1>Book a Fitting</h1>
+    <p class="appt-subtitle">Step into our atelier and discover the gown that speaks to you</p>
+  </div>
+</section>
+
+<section class="appt-body">
+  <div class="appt-container">
+
+    @if (success()) {
+      <div class="appt-success">
+        <div class="success-icon">&#x2713;</div>
+        <h2>Your appointment has been requested</h2>
+        <p>We'll contact you shortly to confirm the details.</p>
+        <a routerLink="/" class="btn-dark">Return Home</a>
+      </div>
+    } @else {
+      <div class="appt-layout">
+
+        <!-- Left: Form -->
+        <div class="appt-form-wrap">
+          <h2 class="form-title">Your Information</h2>
+          <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label>First Name <span class="required">*</span></label>
+                <input formControlName="firstName" type="text" placeholder="Olena" />
+                @if (form.get('firstName')?.invalid && form.get('firstName')?.touched) {
+                  <span class="field-error">Required</span>
+                }
+              </div>
+              <div class="form-field">
+                <label>Last Name <span class="required">*</span></label>
+                <input formControlName="lastName" type="text" placeholder="Koval" />
+                @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
+                  <span class="field-error">Required</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label>Phone <span class="required">*</span></label>
+                <input formControlName="phone" type="tel" placeholder="+44 7700 000000" />
+                @if (form.get('phone')?.invalid && form.get('phone')?.touched) {
+                  <span class="field-error">Required</span>
+                }
+              </div>
+              <div class="form-field">
+                <label>Email</label>
+                <input formControlName="email" type="email" placeholder="your@email.com" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label>Preferred Date <span class="required">*</span></label>
+                <input formControlName="appointmentDate" type="date" />
+                @if (form.get('appointmentDate')?.invalid && form.get('appointmentDate')?.touched) {
+                  <span class="field-error">Required</span>
+                }
+              </div>
+              <div class="form-field">
+                <label>Preferred Time <span class="required">*</span></label>
+                <input formControlName="appointmentTime" type="time" />
+                @if (form.get('appointmentTime')?.invalid && form.get('appointmentTime')?.touched) {
+                  <span class="field-error">Required</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label>Appointment Type <span class="required">*</span></label>
+              <div class="type-select">
+                <label class="type-option" [class.selected]="form.get('type')?.value === 0">
+                  <input type="radio" formControlName="type" [value]="0" /> First Fitting
+                </label>
+                <label class="type-option" [class.selected]="form.get('type')?.value === 1">
+                  <input type="radio" formControlName="type" [value]="1" /> Second Fitting
+                </label>
+                <label class="type-option vip" [class.selected]="form.get('type')?.value === 2">
+                  <input type="radio" formControlName="type" [value]="2" /> VIP Experience
+                </label>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label>Notes</label>
+              <textarea formControlName="notes" rows="3" placeholder="Tell us about your dream gown..."></textarea>
+            </div>
+
+            @if (error()) {
+              <div class="form-error">{{ error() }}</div>
+            }
+
+            <button type="submit" class="btn-dark submit-btn" [disabled]="loading()">
+              @if (loading()) {
+                Sending...
+              } @else {
+                Request Appointment
+              }
+            </button>
+
+          </form>
+        </div>
+
+        <!-- Right: sidebar -->
+        <div class="appt-sidebar">
+
+          <!-- Atlier info -->
+          @if (atlier(); as a) {
+            <div class="sidebar-card">
+              <h3>Atelier Details</h3>
+              <ul class="atlier-list">
+                <li><span>&#128205;</span> {{ a.address }}</li>
+                <li><span>&#9201;</span> {{ a.fittingDurationMinutes }}-minute fitting</li>
+                <li><span>&#128101;</span> Up to {{ a.maxGuests }} guests welcome</li>
+                <li><span>&#10003;</span> {{ a.isFittingFree ? 'Free of charge' : 'Paid fitting' }}</li>
+                @if (a.phone) {
+                  <li><span>&#128222;</span> {{ a.phone }}</li>
+                }
+                @if (a.whatsApp) {
+                  <li><span>&#128172;</span> WhatsApp: {{ a.whatsApp }}</li>
+                }
+                @if (a.instagram) {
+                  <li><span>&#128247;</span> {{ a.instagram }}</li>
+                }
+              </ul>
+            </div>
+          }
+
+          <!-- Viewed dresses -->
+          @if (viewedDresses().length > 0) {
+            <div class="sidebar-card">
+              <h3>Dresses You Viewed</h3>
+              <p class="sidebar-hint">These will be noted for your fitting</p>
+              <div class="viewed-list">
+                @for (d of viewedDresses(); track d.id) {
+                  <div class="viewed-item">
+                    @if (d.heroImageUrl) {
+                      <img [src]="d.heroImageUrl" [alt]="d.name" />
+                    } @else {
+                      <div class="viewed-placeholder"></div>
+                    }
+                    <div>
+                      <p class="viewed-name">{{ d.name }}</p>
+                      <p class="viewed-silhouette">{{ d.silhouette }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+        </div>
+      </div>
+    }
+
+  </div>
+</section>
+
+<app-footer />

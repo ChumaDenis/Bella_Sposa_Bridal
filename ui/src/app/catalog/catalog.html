@@ -1,0 +1,79 @@
+<app-navbar />
+
+<section class="catalog-hero">
+  <div class="catalog-hero-inner">
+    <p class="catalog-eyebrow">Bella Sposa</p>
+    <h1>Our Collection</h1>
+    <p class="catalog-subtitle">Every gown tells a story</p>
+  </div>
+</section>
+
+<section class="catalog-body">
+  <div class="container">
+
+    <!-- Filter bar -->
+    <div class="filters">
+      <div class="filter-group">
+        <button
+          class="filter-pill"
+          [class.active]="activeCollection() === null"
+          (click)="selectCollection(null)">
+          All
+        </button>
+        @for (col of collections(); track col.id) {
+          <button
+            class="filter-pill"
+            [class.active]="activeCollection() === col.id"
+            (click)="selectCollection(col.id)">
+            {{ col.name }}
+          </button>
+        }
+      </div>
+
+      @if (silhouettes().length > 0) {
+        <div class="filter-group filter-group--silhouettes">
+          <button
+            class="filter-pill filter-pill--silhouette"
+            [class.active]="activeSilhouette() === null"
+            (click)="selectSilhouette(null)">
+            All Silhouettes
+          </button>
+          @for (sil of silhouettes(); track sil) {
+            <button
+              class="filter-pill filter-pill--silhouette"
+              [class.active]="activeSilhouette() === sil"
+              (click)="selectSilhouette(sil)">
+              {{ sil }}
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Content -->
+    @if (loading()) {
+      <div class="loading-grid">
+        @for (i of [1,2,3,4,5,6]; track i) {
+          <div class="skeleton-card"></div>
+        }
+      </div>
+    } @else if (filteredDresses().length === 0) {
+      <div class="empty-state">
+        <p class="empty-title">No gowns found</p>
+        <p class="empty-desc">Try adjusting your filters to discover more of our collection.</p>
+        <button class="filter-pill active" (click)="selectCollection(null); selectSilhouette(null)">
+          Clear Filters
+        </button>
+      </div>
+    } @else {
+      <div class="dress-grid">
+        @for (dress of filteredDresses(); track dress.id) {
+          <app-dress-card [dress]="dress" />
+        }
+      </div>
+    }
+
+  </div>
+</section>
+
+<app-footer />

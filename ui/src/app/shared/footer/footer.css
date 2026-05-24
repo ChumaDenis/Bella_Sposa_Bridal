@@ -1,0 +1,121 @@
+/* ─── LOGO WORDMARK (footer variant) ─────────── */
+.logo-wordmark {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.28rem;
+  line-height: 1;
+  text-align: center;
+  cursor: pointer;
+}
+
+.logo-main {
+  font-family: var(--font-serif);
+  font-size: 1.9rem;
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  color: var(--white);
+  white-space: nowrap;
+}
+
+.logo-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.logo-divider-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(184, 151, 90, 0.55);
+}
+
+.logo-divider-diamond {
+  width: 5px;
+  height: 5px;
+  background: var(--gold);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+}
+
+.logo-sub {
+  font-family: var(--font-sans);
+  font-size: 0.48rem;
+  font-weight: 500;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  padding-left: 0.45em;
+}
+
+/* Footer — white + gold */
+.logo-wordmark--footer .logo-main         { color: var(--white); font-size: 1.6rem; }
+.logo-wordmark--footer .logo-divider-line { background: rgba(212, 180, 131, 0.4); }
+.logo-wordmark--footer .logo-sub          { color: var(--gold-light); }
+
+/* ─── FOOTER ─────────────────────────────────── */
+.footer {
+  background: var(--dark);
+  color: rgba(255,255,255,0.5);
+  padding: 4rem 0 2.5rem;
+}
+
+.footer-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  text-align: center;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.footer-logo {
+  display: flex;
+  justify-content: center;
+}
+
+.footer-tagline {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--gold-light);
+}
+
+.footer-nav {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.footer-nav a {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  transition: color 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+
+.footer-nav a:hover { color: var(--gold-light); }
+
+.footer-copy {
+  font-size: 0.72rem;
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  width: 100%;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .footer-nav { gap: 1.25rem; }
+}

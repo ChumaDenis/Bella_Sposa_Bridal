@@ -1,0 +1,153 @@
+<app-navbar />
+
+@if (loading()) {
+  <div class="detail-loading">
+    <div class="loading-spinner"></div>
+    <p>Loading...</p>
+  </div>
+}
+
+@if (dress(); as d) {
+
+  <!-- 1. HERO BLOCK -->
+  <section class="detail-hero">
+    <div class="hero-image">
+      @if (d.photos.length > 0) {
+        <img [src]="d.photos[0].url" [alt]="d.name" />
+      } @else {
+        <div class="hero-image-placeholder"></div>
+      }
+    </div>
+    <div class="hero-content">
+      <div class="breadcrumb">
+        <a routerLink="/">Home</a>
+        <span>/</span>
+        <a routerLink="/catalog">Catalog</a>
+        <span>/</span>
+        <span>{{ d.name }}</span>
+      </div>
+      <div class="hero-collections">
+        @for (col of d.collections; track col.id) {
+          <span class="hero-collection">{{ col.name }}</span>
+        }
+      </div>
+      <h1 class="hero-name">{{ d.name }}</h1>
+      <p class="hero-tagline">{{ d.tagline }}</p>
+      <div class="hero-ctas">
+        <button class="btn-dark" (click)="bookAppointment()">Book a Fitting</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. GALLERY -->
+  @if (d.photos.length > 0) {
+    <section class="detail-gallery container">
+      <div class="gallery-main">
+        <img
+          [src]="d.photos[activePhotoIndex()].url"
+          [alt]="d.name"
+          (click)="openLightbox(d.photos[activePhotoIndex()])"
+        />
+      </div>
+      <div class="gallery-thumbs">
+        @for (photo of d.photos; track photo.id; let i = $index) {
+          <div class="thumb" [class.active]="i === activePhotoIndex()" (click)="activePhotoIndex.set(i)">
+            <img [src]="photo.url" [alt]="photo.altText || d.name" loading="lazy" />
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- 3. INFO + DESCRIPTION -->
+  <section class="detail-info-section container">
+    <div class="detail-characteristics reveal">
+      <h2 class="section-title">Details</h2>
+      <table class="char-table">
+        <tbody>
+          <tr><th>Silhouette</th><td>{{ d.silhouette }}</td></tr>
+          <tr><th>Material</th><td>{{ d.material }}</td></tr>
+          <tr><th>Corset</th><td>{{ d.corsetType }}</td></tr>
+          @if (d.trainDescription) {
+            <tr><th>Train</th><td>{{ d.trainDescription }}</td></tr>
+          }
+          <tr><th>Color</th><td>{{ d.color }}</td></tr>
+          @if (d.hasSleeves && d.sleeveDescription) {
+            <tr><th>Sleeves</th><td>{{ d.sleeveDescription }}</td></tr>
+          }
+          @if (d.decoration) {
+            <tr><th>Decoration</th><td>{{ d.decoration }}</td></tr>
+          }
+          <tr>
+            <th>Custom tailoring</th>
+            <td>{{ d.customTailoringAvailable ? 'Available' : 'Not available' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      @if (d.sizes.length > 0) {
+        <div class="sizes-block">
+          <h3>Available sizes</h3>
+          <div class="sizes-list">
+            @for (size of d.sizes; track size) {
+              <span class="size-chip">{{ size }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+    <div class="detail-description reveal">
+      <h2 class="section-title">About this gown</h2>
+      <p class="description-text">{{ d.description }}</p>
+      <button class="btn-dark" (click)="bookAppointment()">Book a Fitting</button>
+    </div>
+  </section>
+
+  <!-- 4. ATLIER INFO -->
+  @if (atlier(); as a) {
+    <section class="atlier-section reveal">
+      <h2 class="section-title centered">About the Fitting</h2>
+      <div class="atlier-grid">
+        <div class="atlier-item">
+          <span class="atlier-label">Location</span>
+          <span>{{ a.address }}</span>
+        </div>
+        <div class="atlier-item">
+          <span class="atlier-label">Duration</span>
+          <span>{{ a.fittingDurationMinutes }} min</span>
+        </div>
+        <div class="atlier-item">
+          <span class="atlier-label">Cost</span>
+          <span>{{ a.isFittingFree ? 'Free' : 'Paid' }}</span>
+        </div>
+        <div class="atlier-item">
+          <span class="atlier-label">Guests</span>
+          <span>Up to {{ a.maxGuests }}</span>
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- 5. RELATED DRESSES -->
+  @if (d.relatedDresses.length > 0) {
+    <section class="related-section">
+      <h2 class="section-title centered reveal">You might also like</h2>
+      <div class="related-grid">
+        @for (rel of d.relatedDresses; track rel.id) {
+          <app-dress-card [dress]="rel" />
+        }
+      </div>
+    </section>
+  }
+
+  <!-- 6. LIGHTBOX -->
+  @if (selectedPhoto()) {
+    <div class="lightbox" (click)="closeLightbox()">
+      <button class="lb-close" (click)="closeLightbox()">&#x2715;</button>
+      <button class="lb-prev" (click)="$event.stopPropagation(); prevPhoto()">&#8249;</button>
+      <img [src]="selectedPhoto()!.url" [alt]="d.name" (click)="$event.stopPropagation()" />
+      <button class="lb-next" (click)="$event.stopPropagation(); nextPhoto()">&#8250;</button>
+    </div>
+  }
+}
+
+<app-footer />

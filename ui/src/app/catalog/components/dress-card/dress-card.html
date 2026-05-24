@@ -1,0 +1,22 @@
+<article class="dress-card reveal" (click)="navigate()">
+  <div class="card-image">
+    @if (dress.heroImageUrl) {
+      <img [src]="dress.heroImageUrl" [alt]="dress.name" loading="lazy" />
+    } @else {
+      <div class="card-image-placeholder"></div>
+    }
+    <div class="card-overlay">
+      <span class="view-btn">View Details</span>
+    </div>
+  </div>
+  <div class="card-info">
+    <div class="card-collections">
+      @for (col of dress.collectionNames; track col) {
+        <span class="collection-tag">{{ col }}</span>
+      }
+    </div>
+    <h3 class="card-name">{{ dress.name }}</h3>
+    <p class="card-tagline">{{ dress.tagline }}</p>
+    <p class="card-silhouette">{{ dress.silhouette }}</p>
+  </div>
+</article>

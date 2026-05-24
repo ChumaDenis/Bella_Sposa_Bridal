@@ -1,14 +1,15 @@
 import { Component, OnDestroy, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NavbarComponent } from '../shared/navbar/navbar';
+import { FooterComponent } from '../shared/footer/footer';
 
 @Component({
   selector: 'app-home',
-  imports: [CommonModule],
+  imports: [CommonModule, NavbarComponent, FooterComponent],
   templateUrl: './home.html',
   styleUrl: './home.css'
 })
 export class Home implements AfterViewInit, OnDestroy {
-  @ViewChild('navbar') navbar!: ElementRef<HTMLElement>;
   @ViewChild('heroSection') heroSection!: ElementRef<HTMLElement>;
   @ViewChild('heroVideo')  heroVideo!:  ElementRef<HTMLVideoElement>;
   @ViewChild('aboutVideo') aboutVideo!: ElementRef<HTMLVideoElement>;
@@ -16,16 +17,10 @@ export class Home implements AfterViewInit, OnDestroy {
   isMuted      = true;
   isAboutMuted = true;
 
-  private scrollHandler = () => { this.updateNavbar(); };
-
   private observer!:            IntersectionObserver;
   private aboutVideoObserver!:  IntersectionObserver;
-  menuOpen           = false;
-  collectionMenuOpen = false;
-  private megaMenuTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngAfterViewInit() {
-    window.addEventListener('scroll', this.scrollHandler, { passive: true });
     this.initScrollReveal();
     this.initCursor();
     this.startHeroVideo();
@@ -37,35 +32,14 @@ export class Home implements AfterViewInit, OnDestroy {
     if (!video) return;
     video.muted = true;
     video.play().catch(() => {
-      // Autoplay blocked — video will play on first user interaction
       const resume = () => { video.play(); document.removeEventListener('click', resume); };
       document.addEventListener('click', resume, { once: true });
     });
   }
 
   ngOnDestroy() {
-    window.removeEventListener('scroll', this.scrollHandler);
     this.observer?.disconnect();
     this.aboutVideoObserver?.disconnect();
-    if (this.megaMenuTimer) clearTimeout(this.megaMenuTimer);
-  }
-
-  openMegaMenu()  {
-    if (this.megaMenuTimer) clearTimeout(this.megaMenuTimer);
-    this.collectionMenuOpen = true;
-  }
-
-  closeMegaMenu() {
-    this.megaMenuTimer = setTimeout(() => { this.collectionMenuOpen = false; }, 200);
-  }
-
-  private updateNavbar() {
-    const nav = this.navbar?.nativeElement;
-    if (nav) nav.classList.toggle('scrolled', window.scrollY > 80);
-  }
-
-  private updateParallax() {
-    // No parallax on portrait video — it would push content out of frame
   }
 
   private initScrollReveal() {
@@ -102,9 +76,6 @@ export class Home implements AfterViewInit, OnDestroy {
     });
   }
 
-  toggleMenu() { this.menuOpen = !this.menuOpen; }
-  closeMenu()  { this.menuOpen = false; }
-
   toggleSound() {
     const video = this.heroVideo?.nativeElement;
     if (!video) return;
@@ -135,7 +106,6 @@ export class Home implements AfterViewInit, OnDestroy {
   }
 
   scrollTo(id: string) {
-    this.closeMenu();
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   }
 

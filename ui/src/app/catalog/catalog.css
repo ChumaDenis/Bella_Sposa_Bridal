@@ -1,0 +1,192 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* ─── REVEAL ─────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ─── CATALOG HERO ───────────────────────────── */
+.catalog-hero {
+  min-height: 35vh;
+  background: linear-gradient(160deg, var(--cream) 0%, var(--champagne) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8rem 2rem 4rem;
+}
+
+.catalog-hero-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.catalog-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.catalog-hero h1 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: clamp(2.8rem, 6vw, 5rem);
+  color: #1B2C42;
+  font-style: italic;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.catalog-subtitle {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 0.9rem;
+  color: #4A6072;
+  letter-spacing: 0.05em;
+}
+
+/* ─── CATALOG BODY ───────────────────────────── */
+.catalog-body {
+  background: var(--cream);
+  padding: 5rem 0 8rem;
+}
+
+/* ─── FILTERS ────────────────────────────────── */
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.filter-group--silhouettes {
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(184,151,90,0.2);
+}
+
+.filter-pill {
+  border: 1px solid #D4B483;
+  color: #4A6072;
+  padding: 0.45rem 1.2rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  border-radius: 0;
+  background: transparent;
+}
+
+.filter-pill:hover {
+  border-color: #1B2C42;
+  color: #1B2C42;
+}
+
+.filter-pill.active {
+  background: #1B2C42;
+  color: white;
+  border-color: #1B2C42;
+}
+
+.filter-pill--silhouette {
+  font-size: 0.68rem;
+  padding: 0.35rem 1rem;
+}
+
+/* ─── DRESS GRID ─────────────────────────────── */
+.dress-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+/* ─── LOADING SKELETONS ──────────────────────── */
+.loading-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.skeleton-card {
+  aspect-ratio: 2/3;
+  background: #F0E6D3;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* ─── EMPTY STATE ─────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 6rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.empty-title {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 2rem;
+  color: #1B2C42;
+  margin: 0;
+}
+
+.empty-desc {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 0.88rem;
+  color: #4A6072;
+  margin: 0 0 0.5rem;
+}
+
+/* ─── RESPONSIVE ─────────────────────────────── */
+@media (max-width: 900px) {
+  .dress-grid, .loading-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .dress-grid, .loading-grid {
+    grid-template-columns: 1fr;
+  }
+  .catalog-hero {
+    padding: 6rem 1.5rem 3rem;
+  }
+  .catalog-body {
+    padding: 3rem 0 4.5rem;
+  }
+  .container {
+    padding: 0 1.25rem;
+  }
+}
