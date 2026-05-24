@@ -8,11 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Railway provides DATABASE_URL as postgresql://user:pass@host:port/db
 // Parse it into the Npgsql connection string format
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+Console.WriteLine($"[Startup] DATABASE_URL present: {!string.IsNullOrEmpty(databaseUrl)}");
 if (!string.IsNullOrEmpty(databaseUrl))
 {
     var uri = new Uri(databaseUrl);
     var userInfo = uri.UserInfo.Split(':');
     var connStr = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+    Console.WriteLine($"[Startup] Connecting to: {uri.Host}:{uri.Port}");
     builder.Configuration["ConnectionStrings:DefaultConnection"] = connStr;
 }
 
