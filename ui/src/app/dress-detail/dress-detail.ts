@@ -23,12 +23,12 @@ import { AtlierInfoDto } from '../core/models/atlier.model';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DressDetailComponent implements OnInit, OnDestroy {
-  private route      = inject(ActivatedRoute);
+  private route        = inject(ActivatedRoute);
   private dressService = inject(DressService);
   private atlierService = inject(AtlierService);
-  private viewedSvc  = inject(ViewedDressesService);
-  private router     = inject(Router);
-  private cdr        = inject(ChangeDetectorRef);
+  private viewedSvc   = inject(ViewedDressesService);
+  private router      = inject(Router);
+  private cdr         = inject(ChangeDetectorRef);
 
   dress            = signal<DressDetailDto | null>(null);
   atlier           = signal<AtlierInfoDto | null>(null);
@@ -36,6 +36,7 @@ export class DressDetailComponent implements OnInit, OnDestroy {
   error            = signal(false);
   activePhotoIndex = signal(0);
   lightboxOpen     = signal(false);
+  detailsOpen      = signal(false);
 
   private observer!: IntersectionObserver;
   private routeSub!: Subscription;
@@ -58,6 +59,7 @@ export class DressDetailComponent implements OnInit, OnDestroy {
     this.error.set(false);
     this.activePhotoIndex.set(0);
     this.lightboxOpen.set(false);
+    this.detailsOpen.set(false);
     this.viewedSvc.add(id);
 
     forkJoin({
@@ -93,6 +95,10 @@ export class DressDetailComponent implements OnInit, OnDestroy {
     document.querySelectorAll('.reveal').forEach(el => this.observer.observe(el));
   }
 
+  silhouetteLabel(n: number): string {
+    return SILHOUETTE_LABELS[n] ?? 'Classic';
+  }
+
   // ── Gallery ─────────────────────────────────────────────────────
   setPhoto(index: number) { this.activePhotoIndex.set(index); }
 
@@ -106,6 +112,11 @@ export class DressDetailComponent implements OnInit, OnDestroy {
   openLightbox() {
     this.lightboxOpen.set(true);
     document.body.style.overflow = 'hidden';
+  }
+
+  openLightboxAt(index: number) {
+    this.activePhotoIndex.set(index);
+    this.openLightbox();
   }
 
   closeLightbox() {
@@ -133,10 +144,6 @@ export class DressDetailComponent implements OnInit, OnDestroy {
     if (e.key === 'Escape')     this.closeLightbox();
     if (e.key === 'ArrowLeft')  this.prevPhoto();
     if (e.key === 'ArrowRight') this.nextPhoto();
-  }
-
-  silhouetteLabel(n: number): string {
-    return SILHOUETTE_LABELS[n] ?? 'Classic';
   }
 
   // ── Navigation ───────────────────────────────────────────────────
