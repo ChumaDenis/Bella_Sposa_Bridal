@@ -13,8 +13,11 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
+
         services.AddDbContext<AppDbContext>(options =>
-            options.UseInMemoryDatabase("BellaSposaBridal"));
+            options.UseNpgsql(connectionString));
 
         services.AddScoped<IDressRepository, DressRepository>();
         services.AddScoped<ICollectionRepository, CollectionRepository>();

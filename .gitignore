@@ -5,8 +5,8 @@
 .vs/
 *.suo
 *.userprefs
+# appsettings.*.json contain DB credentials — keep out of git
 appsettings.*.json
-!appsettings.Development.json
 
 # ─── Node / React ──────────────────────────────────────────────────
 # (ui/.gitignore handles most of this; extras below)
