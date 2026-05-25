@@ -6,25 +6,25 @@ namespace BellaSposaBridal.Infrastructure.Persistence;
 
 public static class DataSeeder
 {
-    private const string ImgBase = "/images";
+    private const string ImgBase = "https://pub-72033d04e6fe458286baded587730303.r2.dev/images";
 
     public static async Task SeedAsync(AppDbContext ctx)
     {
-        // Fix localhost URLs left from local development
-        const string oldBase = "http://localhost:4200/images";
-        if (await ctx.DressPhotos.AnyAsync(p => p.Url.StartsWith(oldBase)))
+        // Fix legacy relative and localhost URLs to point at R2
+        var legacyPrefixes = new[] { "http://localhost:4200/images", "/images" };
+        foreach (var old in legacyPrefixes)
         {
-            await ctx.DressPhotos
-                .Where(p => p.Url.StartsWith(oldBase))
-                .ExecuteUpdateAsync(s => s.SetProperty(
-                    p => p.Url, p => ImgBase + p.Url.Substring(oldBase.Length)));
-        }
-        if (await ctx.Collections.AnyAsync(c => c.CoverImageUrl != null && c.CoverImageUrl.StartsWith(oldBase)))
-        {
-            await ctx.Collections
-                .Where(c => c.CoverImageUrl != null && c.CoverImageUrl.StartsWith(oldBase))
-                .ExecuteUpdateAsync(s => s.SetProperty(
-                    c => c.CoverImageUrl, c => ImgBase + c.CoverImageUrl!.Substring(oldBase.Length)));
+            if (await ctx.DressPhotos.AnyAsync(p => p.Url.StartsWith(old)))
+                await ctx.DressPhotos
+                    .Where(p => p.Url.StartsWith(old))
+                    .ExecuteUpdateAsync(s => s.SetProperty(
+                        p => p.Url, p => ImgBase + p.Url.Substring(old.Length)));
+
+            if (await ctx.Collections.AnyAsync(c => c.CoverImageUrl != null && c.CoverImageUrl.StartsWith(old)))
+                await ctx.Collections
+                    .Where(c => c.CoverImageUrl != null && c.CoverImageUrl.StartsWith(old))
+                    .ExecuteUpdateAsync(s => s.SetProperty(
+                        c => c.CoverImageUrl, c => ImgBase + c.CoverImageUrl!.Substring(old.Length)));
         }
 
         if (await ctx.Dresses.AnyAsync()) return;
