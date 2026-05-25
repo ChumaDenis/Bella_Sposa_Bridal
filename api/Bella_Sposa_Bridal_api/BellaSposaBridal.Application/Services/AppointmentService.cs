@@ -33,7 +33,8 @@ public class AppointmentService : IAppointmentService
 
     public async Task<AppointmentDto> CreateAsync(CreateAppointmentDto dto)
     {
-        if (await _appointmentRepository.IsSlotTakenAsync(dto.AppointmentDateTime))
+        var isCallback = dto.AppointmentDateTime.Year >= 2099;
+        if (!isCallback && await _appointmentRepository.IsSlotTakenAsync(dto.AppointmentDateTime))
             throw new InvalidOperationException("This time slot is already booked.");
 
         var dressIds = dto.ViewedDressIds.Take(5).ToList();
