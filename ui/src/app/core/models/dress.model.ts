@@ -7,6 +7,7 @@ export interface DressListDto {
   silhouette: number;
   color: string;
   heroImageUrl: string | null;
+  isActive: boolean;
   collectionNames: string[];
   sizes: string[];
 }
@@ -26,7 +27,7 @@ export interface DressPhoto {
   id: string;
   url: string;
   altText: string | null;
-  type: string;
+  type: number;
   order: number;
 }
 
@@ -51,6 +52,7 @@ export interface DressDetailDto {
   sleeveDescription: string | null;
   decoration: string | null;
   customTailoringAvailable: boolean;
+  isActive: boolean;
   collectionNames: string[];
   photos: DressPhoto[];
   videos: DressVideo[];

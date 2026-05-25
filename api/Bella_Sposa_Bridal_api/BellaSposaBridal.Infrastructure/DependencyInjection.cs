@@ -1,6 +1,8 @@
 using BellaSposaBridal.Application.Interfaces.Repositories;
+using BellaSposaBridal.Application.Interfaces.Services;
 using BellaSposaBridal.Infrastructure.Persistence;
 using BellaSposaBridal.Infrastructure.Repositories;
+using BellaSposaBridal.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<ICollectionRepository, CollectionRepository>();
         services.AddScoped<IAtlierInfoRepository, AtlierInfoRepository>();
         services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+        services.AddSingleton<IStorageService, CloudflareR2StorageService>();
 
         return services;
     }

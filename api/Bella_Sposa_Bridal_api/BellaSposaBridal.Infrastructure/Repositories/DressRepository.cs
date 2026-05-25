@@ -1,5 +1,6 @@
 using BellaSposaBridal.Application.Interfaces.Repositories;
 using BellaSposaBridal.Domain.Entities;
+using BellaSposaBridal.Domain.Enums;
 using BellaSposaBridal.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,18 @@ public class DressRepository : IDressRepository
     public DressRepository(AppDbContext context)
     {
         _context = context;
+    }
+
+    public async Task<IEnumerable<Dress>> GetAllAsync()
+    {
+        return await _context.Dresses
+            .Include(d => d.Photos)
+            .Include(d => d.Collections)
+                .ThenInclude(dc => dc.Collection)
+            .Include(d => d.Sizes)
+            .OrderBy(d => d.Name)
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     public async Task<IEnumerable<Dress>> GetAllActiveAsync()
@@ -75,5 +88,23 @@ public class DressRepository : IDressRepository
             _context.Dresses.Remove(dress);
             await _context.SaveChangesAsync();
         }
+    }
+
+    public async Task<DressPhoto> AddPhotoAsync(Guid dressId, DressPhoto photo)
+    {
+        photo.DressId = dressId;
+        _context.Set<DressPhoto>().Add(photo);
+        await _context.SaveChangesAsync();
+        return photo;
+    }
+
+    public async Task<bool> DeletePhotoAsync(Guid dressId, Guid photoId)
+    {
+        var photo = await _context.Set<DressPhoto>()
+            .FirstOrDefaultAsync(p => p.Id == photoId && p.DressId == dressId);
+        if (photo is null) return false;
+        _context.Set<DressPhoto>().Remove(photo);
+        await _context.SaveChangesAsync();
+        return true;
     }
 }

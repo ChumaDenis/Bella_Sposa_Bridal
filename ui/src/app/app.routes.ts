@@ -23,5 +23,9 @@ export const routes: Routes = [
     path: 'collections/:id',
     loadComponent: () => import('./collection-detail/collection-detail').then(m => m.CollectionDetailComponent)
   },
+  {
+    path: 'admin',
+    loadComponent: () => import('./admin/admin').then(m => m.AdminComponent)
+  },
   { path: '**', redirectTo: '' }
 ];

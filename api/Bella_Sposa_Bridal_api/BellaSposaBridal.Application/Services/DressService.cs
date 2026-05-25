@@ -1,6 +1,7 @@
 using BellaSposaBridal.Application.DTOs.Dress;
 using BellaSposaBridal.Application.Interfaces.Repositories;
 using BellaSposaBridal.Application.Interfaces.Services;
+using BellaSposaBridal.Domain.Common;
 using BellaSposaBridal.Domain.Entities;
 using BellaSposaBridal.Domain.Enums;
 
@@ -18,6 +19,12 @@ public class DressService : IDressService
     public async Task<IEnumerable<DressListDto>> GetAllActiveAsync()
     {
         var dresses = await _dressRepository.GetAllActiveAsync();
+        return dresses.Select(MapToListDto);
+    }
+
+    public async Task<IEnumerable<DressListDto>> GetAllAsync()
+    {
+        var dresses = await _dressRepository.GetAllAsync();
         return dresses.Select(MapToListDto);
     }
 
@@ -89,6 +96,15 @@ public class DressService : IDressService
         return MapToDetailDto(updated);
     }
 
+    public async Task ToggleActiveAsync(Guid id, bool isActive)
+    {
+        var dress = await _dressRepository.GetByIdAsync(id);
+        if (dress is null) return;
+        dress.IsActive = isActive;
+        dress.UpdatedAt = DateTime.UtcNow;
+        await _dressRepository.UpdateAsync(dress);
+    }
+
     public async Task<bool> DeleteAsync(Guid id)
     {
         var dress = await _dressRepository.GetByIdAsync(id);
@@ -96,6 +112,36 @@ public class DressService : IDressService
         await _dressRepository.DeleteAsync(id);
         return true;
     }
+
+    public async Task<DressPhotoDto?> AddPhotoAsync(Guid dressId, AddDressPhotoDto dto)
+    {
+        var dress = await _dressRepository.GetByIdAsync(dressId);
+        if (dress is null) return null;
+
+        var photo = new DressPhoto
+        {
+            Id       = Guid.NewGuid(),
+            Url      = dto.Url,
+            AltText  = dto.AltText,
+            Type     = dto.Type,
+            Order    = dto.Order > 0 ? dto.Order : (dress.Photos.Count + 1),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        var created = await _dressRepository.AddPhotoAsync(dressId, photo);
+        return new DressPhotoDto
+        {
+            Id      = created.Id,
+            Url     = created.Url,
+            AltText = created.AltText,
+            Type    = created.Type,
+            Order   = created.Order
+        };
+    }
+
+    public async Task<bool> DeletePhotoAsync(Guid dressId, Guid photoId)
+        => await _dressRepository.DeletePhotoAsync(dressId, photoId);
 
     private static string? GetHeroImageUrl(Dress dress)
     {
@@ -112,6 +158,7 @@ public class DressService : IDressService
         Silhouette = dress.Silhouette,
         Color = dress.Color,
         HeroImageUrl = GetHeroImageUrl(dress),
+        IsActive = dress.IsActive,
         CollectionNames = dress.Collections
             .Select(dc => dc.Collection?.Name ?? string.Empty)
             .Where(n => !string.IsNullOrEmpty(n))

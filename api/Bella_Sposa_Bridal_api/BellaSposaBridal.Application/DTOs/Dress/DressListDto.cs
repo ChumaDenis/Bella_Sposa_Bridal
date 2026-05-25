@@ -10,6 +10,7 @@ public class DressListDto
     public Silhouette Silhouette { get; set; }
     public string Color { get; set; } = string.Empty;
     public string? HeroImageUrl { get; set; }
+    public bool IsActive { get; set; }
     public List<string> CollectionNames { get; set; } = new();
     public List<string> Sizes { get; set; } = new();
 }

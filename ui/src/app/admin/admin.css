@@ -1,0 +1,394 @@
+/* ─── LAYOUT ─────────────────────────────────────────────────── */
+.admin-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+  background: #0f1117;
+  color: #e5e7eb;
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+
+/* ─── SIDEBAR ────────────────────────────────────────────────── */
+.admin-sidebar {
+  background: #161b27;
+  border-right: 1px solid #1e2535;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.admin-logo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.25rem 1rem;
+  border-bottom: 1px solid #1e2535;
+}
+
+.admin-logo-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #B8975A;
+}
+
+.admin-logo-link {
+  font-size: 0.7rem;
+  color: #6b7280;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.admin-logo-link:hover { color: #B8975A; }
+
+.admin-sidebar-stats {
+  padding: 0.6rem 1.25rem;
+  font-size: 0.68rem;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #1e2535;
+}
+
+.admin-loading-list {
+  padding: 2rem 1.25rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.admin-dress-list {
+  list-style: none;
+  padding: 0.5rem 0;
+  margin: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.admin-dress-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.admin-dress-item:hover { background: rgba(255,255,255,0.04); }
+.admin-dress-item.selected { background: rgba(184,151,90,0.12); }
+.admin-dress-item.inactive { opacity: 0.5; }
+
+.admin-dress-thumb {
+  width: 36px;
+  height: 45px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.admin-dress-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #1e2535;
+}
+
+.admin-dress-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.admin-dress-name {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #e5e7eb;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-dress-badge {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #34d399;
+}
+
+.admin-dress-badge.inactive { color: #6b7280; }
+
+/* ─── MAIN ───────────────────────────────────────────────────── */
+.admin-main {
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+.admin-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  color: #6b7280;
+  font-size: 0.88rem;
+}
+
+/* ─── DETAIL ─────────────────────────────────────────────────── */
+.admin-detail {
+  max-width: 1100px;
+}
+
+.admin-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #1e2535;
+}
+
+.admin-dress-title {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: #f3f4f6;
+  margin: 0 0 0.3rem;
+}
+
+.admin-dress-tagline {
+  font-size: 0.82rem;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.admin-toggle-btn {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.55rem 1.2rem;
+  border: 1px solid #374151;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: border-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+}
+
+.admin-toggle-btn:hover { border-color: #B8975A; color: #B8975A; }
+.admin-toggle-btn.active { border-color: #374151; color: #6b7280; }
+
+/* ─── SECTION ────────────────────────────────────────────────── */
+.admin-section {
+  margin-bottom: 2.5rem;
+}
+
+.admin-section-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-photo-count {
+  background: #1e2535;
+  color: #9ca3af;
+  font-size: 0.6rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 10px;
+}
+
+/* ─── UPLOAD CONTROLS ────────────────────────────────────────── */
+.admin-upload-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.admin-type-label {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.admin-type-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.admin-type-pill {
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid #2d3748;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.admin-type-pill:hover { border-color: #B8975A; color: #B8975A; }
+.admin-type-pill.active { border-color: #B8975A; background: rgba(184,151,90,0.15); color: #B8975A; }
+
+/* ─── DROPZONE ───────────────────────────────────────────────── */
+.admin-dropzone {
+  border: 2px dashed #2d3748;
+  border-radius: 4px;
+  padding: 3rem 2rem;
+  text-align: center;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  cursor: pointer;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-dropzone.drag-over {
+  border-color: #B8975A;
+  background: rgba(184,151,90,0.06);
+}
+
+.admin-dropzone.uploading {
+  border-color: #2d3748;
+  cursor: default;
+}
+
+.admin-dropzone-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.admin-dropzone-label svg { color: #4b5563; }
+
+.admin-dropzone-label span {
+  font-size: 0.82rem;
+  color: #9ca3af;
+}
+
+.admin-dropzone-label u { color: #B8975A; }
+
+.admin-dropzone-hint {
+  font-size: 0.68rem !important;
+  color: #4b5563 !important;
+}
+
+.admin-upload-spinner {
+  font-size: 0.82rem;
+  color: #B8975A;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.admin-upload-error {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: #f87171;
+}
+
+/* ─── PHOTO GRID ─────────────────────────────────────────────── */
+.admin-no-photos {
+  font-size: 0.8rem;
+  color: #4b5563;
+  margin: 0;
+}
+
+.admin-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.admin-photo-card {
+  position: relative;
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #1e2535;
+}
+
+.admin-photo-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.admin-photo-card:hover img { transform: scale(1.04); }
+
+.admin-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 50%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0.5rem 0.6rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.admin-photo-card:hover .admin-photo-overlay { opacity: 1; }
+
+.admin-photo-type {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.8);
+}
+
+.admin-photo-delete {
+  background: rgba(239,68,68,0.85);
+  border: none;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.admin-photo-delete:hover { background: #ef4444; }
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .admin-layout { grid-template-columns: 1fr; }
+  .admin-sidebar { position: static; height: auto; max-height: 40vh; }
+}

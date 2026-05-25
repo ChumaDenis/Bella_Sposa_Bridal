@@ -22,6 +22,13 @@ public class DressesController : ControllerBase
         return Ok(dresses);
     }
 
+    [HttpGet("admin")]
+    public async Task<ActionResult<IEnumerable<DressListDto>>> GetAllAdmin()
+    {
+        var dresses = await _dressService.GetAllAsync();
+        return Ok(dresses);
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<DressDetailDto>> GetById(Guid id)
     {
@@ -56,6 +63,29 @@ public class DressesController : ControllerBase
     public async Task<IActionResult> Delete(Guid id)
     {
         var deleted = await _dressService.DeleteAsync(id);
+        if (!deleted) return NotFound();
+        return NoContent();
+    }
+
+    [HttpPatch("{id:guid}/active")]
+    public async Task<IActionResult> SetActive(Guid id, [FromBody] bool isActive)
+    {
+        await _dressService.ToggleActiveAsync(id, isActive);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/photos")]
+    public async Task<ActionResult<DressPhotoDto>> AddPhoto(Guid id, [FromBody] AddDressPhotoDto dto)
+    {
+        var photo = await _dressService.AddPhotoAsync(id, dto);
+        if (photo is null) return NotFound();
+        return Ok(photo);
+    }
+
+    [HttpDelete("{id:guid}/photos/{photoId:guid}")]
+    public async Task<IActionResult> DeletePhoto(Guid id, Guid photoId)
+    {
+        var deleted = await _dressService.DeletePhotoAsync(id, photoId);
         if (!deleted) return NotFound();
         return NoContent();
     }
