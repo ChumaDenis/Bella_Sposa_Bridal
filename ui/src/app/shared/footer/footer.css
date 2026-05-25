@@ -107,6 +107,35 @@
 
 .footer-nav a:hover { color: var(--gold-light); }
 
+.footer-contact {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.footer-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 300;
+  color: rgba(255,255,255,0.45);
+  text-decoration: none;
+  letter-spacing: 0.03em;
+  transition: color 0.3s ease;
+}
+
+.footer-contact-item:hover {
+  color: var(--gold-light);
+}
+
+.footer-contact-item svg {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
 .footer-copy {
   font-size: 0.72rem;
   margin-top: 1rem;

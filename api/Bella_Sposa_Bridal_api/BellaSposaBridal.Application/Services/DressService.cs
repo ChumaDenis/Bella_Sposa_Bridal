@@ -115,7 +115,8 @@ public class DressService : IDressService
         CollectionNames = dress.Collections
             .Select(dc => dc.Collection?.Name ?? string.Empty)
             .Where(n => !string.IsNullOrEmpty(n))
-            .ToList()
+            .ToList(),
+        Sizes = dress.Sizes.Select(s => s.Size).ToList()
     };
 
     private static DressDetailDto MapToDetailDto(Dress dress) => new()

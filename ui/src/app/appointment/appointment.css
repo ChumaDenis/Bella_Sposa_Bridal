@@ -126,6 +126,70 @@ textarea {
   min-height: 80px;
 }
 
+/* ─── TIME SLOTS ─────────────────────────────── */
+.time-slots {
+  display: flex;
+  gap: 2rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.time-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.time-group-label {
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #B8975A;
+}
+
+.time-group-slots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.time-slot-btn {
+  padding: 0.6rem 1.1rem;
+  border: 1px solid rgba(0,0,0,0.13);
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: #4A6072;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  letter-spacing: 0.04em;
+}
+
+.time-slot-btn:hover {
+  border-color: rgba(0,0,0,0.3);
+  color: #1B2C42;
+}
+
+.time-slot-btn.selected {
+  border: 2px solid #B8975A;
+  background: #fff;
+  color: #1B2C42;
+  font-weight: 500;
+  padding: 0.55rem 1.05rem;
+}
+
+.time-slot-btn.booked,
+.time-slot-btn:disabled {
+  border-color: rgba(0,0,0,0.07);
+  color: rgba(0,0,0,0.25);
+  background: rgba(0,0,0,0.02);
+  cursor: not-allowed;
+  text-decoration: line-through;
+  text-decoration-color: rgba(0,0,0,0.3);
+}
+
 /* ─── APPOINTMENT TYPE ───────────────────────── */
 .type-select {
   display: flex;
@@ -137,30 +201,49 @@ textarea {
 .type-option {
   position: relative;
   display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.75rem 1.4rem;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.85rem 1.4rem 0.85rem 2.3rem;
   background: transparent;
   border: 1px solid rgba(0,0,0,0.13);
   cursor: pointer;
   font-family: var(--font-sans);
-  font-size: 0.68rem;
-  font-weight: 400;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: var(--dark-muted);
   transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
   user-select: none;
+  min-width: 160px;
+}
+
+.type-option-name {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.type-option-detail {
+  font-size: 0.65rem;
+  font-weight: 300;
+  letter-spacing: 0.03em;
+  color: #8a9aaa;
+}
+
+.vip-price {
+  color: #B8975A;
 }
 
 /* dot indicator */
 .type-option::before {
   content: '';
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
   width: 8px;
   height: 8px;
   border-radius: 50%;
   border: 1.5px solid rgba(0,0,0,0.2);
-  flex-shrink: 0;
   transition: background 0.25s ease, border-color 0.25s ease;
 }
 
@@ -178,8 +261,11 @@ textarea {
   background: #fff;
   border: 2px solid #B8975A;
   color: #1B2C42;
-  font-weight: 500;
-  padding: 0.7rem 1.35rem; /* compensate 1px→2px border */
+  padding: 0.8rem 1.35rem 0.8rem 2.25rem;
+}
+
+.type-option.selected .type-option-name {
+  font-weight: 600;
 }
 
 .type-option.selected::before {
@@ -199,6 +285,49 @@ textarea {
 
 input[type="radio"] {
   display: none;
+}
+
+/* ─── CONTACT FALLBACK ───────────────────────── */
+.appt-contact-fallback {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(0,0,0,0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.appt-contact-fallback p {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 300;
+  color: #8a9aaa;
+  margin: 0;
+}
+
+.appt-callback-btn {
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: #4A6072;
+  background: transparent;
+  padding: 0.55rem 1.2rem;
+  border: 1px solid rgba(0,0,0,0.13);
+  cursor: pointer;
+  transition: border-color 0.25s ease, color 0.25s ease;
+}
+
+.appt-callback-btn:hover {
+  border-color: #B8975A;
+  color: #B8975A;
+}
+
+.appt-callback-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ─── SUBMIT BUTTON ──────────────────────────── */

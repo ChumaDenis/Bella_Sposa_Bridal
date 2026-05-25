@@ -35,6 +35,7 @@ public class AtlierInfoService : IAtlierInfoService
             Telegram = dto.Telegram,
             Instagram = dto.Instagram,
             WorkingHours = dto.WorkingHours,
+            VipPrice = dto.VipPrice,
             UpdatedAt = DateTime.UtcNow
         };
 
@@ -54,6 +55,7 @@ public class AtlierInfoService : IAtlierInfoService
         WhatsApp = a.WhatsApp,
         Telegram = a.Telegram,
         Instagram = a.Instagram,
-        WorkingHours = a.WorkingHours
+        WorkingHours = a.WorkingHours,
+        VipPrice = a.VipPrice
     };
 }

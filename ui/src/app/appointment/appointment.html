@@ -57,34 +57,86 @@
               </div>
             </div>
 
-            <div class="form-row">
-              <div class="form-field">
-                <label>Preferred Date <span class="required">*</span></label>
-                <input formControlName="appointmentDate" type="date" />
-                @if (form.get('appointmentDate')?.invalid && form.get('appointmentDate')?.touched) {
-                  <span class="field-error">Required</span>
-                }
+            <div class="form-field">
+              <label>Preferred Date <span class="required">*</span></label>
+              <input formControlName="appointmentDate" type="date" />
+              @if (form.get('appointmentDate')?.invalid && form.get('appointmentDate')?.touched) {
+                <span class="field-error">Required</span>
+              }
+            </div>
+
+            <div class="form-field">
+              <label>Preferred Time <span class="required">*</span></label>
+              <div class="time-slots">
+                <div class="time-group">
+                  <span class="time-group-label">Morning</span>
+                  <div class="time-group-slots">
+                    @for (t of morningSlots; track t) {
+                      <button type="button" class="time-slot-btn"
+                        [class.selected]="selectedTime === t"
+                        [class.booked]="isBooked(t)"
+                        [disabled]="isBooked(t)"
+                        (click)="selectTime(t)">
+                        {{ t }}
+                      </button>
+                    }
+                  </div>
+                </div>
+                <div class="time-group">
+                  <span class="time-group-label">Afternoon</span>
+                  <div class="time-group-slots">
+                    @for (t of afternoonSlots; track t) {
+                      <button type="button" class="time-slot-btn"
+                        [class.selected]="selectedTime === t"
+                        [class.booked]="isBooked(t)"
+                        [disabled]="isBooked(t)"
+                        (click)="selectTime(t)">
+                        {{ t }}
+                      </button>
+                    }
+                  </div>
+                </div>
+                <div class="time-group">
+                  <span class="time-group-label">Evening</span>
+                  <div class="time-group-slots">
+                    @for (t of eveningSlots; track t) {
+                      <button type="button" class="time-slot-btn"
+                        [class.selected]="selectedTime === t"
+                        [class.booked]="isBooked(t)"
+                        [disabled]="isBooked(t)"
+                        (click)="selectTime(t)">
+                        {{ t }}
+                      </button>
+                    }
+                  </div>
+                </div>
               </div>
-              <div class="form-field">
-                <label>Preferred Time <span class="required">*</span></label>
-                <input formControlName="appointmentTime" type="time" />
-                @if (form.get('appointmentTime')?.invalid && form.get('appointmentTime')?.touched) {
-                  <span class="field-error">Required</span>
-                }
-              </div>
+              @if (form.get('appointmentTime')?.invalid && form.get('appointmentTime')?.touched) {
+                <span class="field-error">Please select a time</span>
+              }
             </div>
 
             <div class="form-field">
               <label>Appointment Type <span class="required">*</span></label>
               <div class="type-select">
                 <label class="type-option" [class.selected]="form.get('type')?.value === 0">
-                  <input type="radio" formControlName="type" [value]="0" /> First Fitting
+                  <input type="radio" formControlName="type" [value]="0" />
+                  <span class="type-option-name">First Fitting</span>
+                  <span class="type-option-detail">Free · 1 h + 30 min complimentary</span>
                 </label>
                 <label class="type-option" [class.selected]="form.get('type')?.value === 1">
-                  <input type="radio" formControlName="type" [value]="1" /> Second Fitting
+                  <input type="radio" formControlName="type" [value]="1" />
+                  <span class="type-option-name">Second Fitting</span>
+                  <span class="type-option-detail">Free · 1 h + 30 min complimentary</span>
                 </label>
                 <label class="type-option vip" [class.selected]="form.get('type')?.value === 2">
-                  <input type="radio" formControlName="type" [value]="2" /> VIP Experience
+                  <input type="radio" formControlName="type" [value]="2" />
+                  <span class="type-option-name">VIP Experience</span>
+                  @if (atlier()?.vipPrice) {
+                    <span class="type-option-detail vip-price">£{{ atlier()!.vipPrice }} · 1 h + 30 min complimentary</span>
+                  } @else {
+                    <span class="type-option-detail vip-price">1 h + 30 min complimentary</span>
+                  }
                 </label>
               </div>
             </div>
@@ -106,6 +158,13 @@
               }
             </button>
 
+            <div class="appt-contact-fallback">
+              <p>None of these times work for you?</p>
+              <button type="button" class="appt-callback-btn" [disabled]="loading()" (click)="submitCallback()">
+                Request a callback — we'll arrange a convenient time
+              </button>
+            </div>
+
           </form>
         </div>
 
@@ -118,14 +177,16 @@
               <h3>Atelier Details</h3>
               <ul class="atlier-list">
                 <li><span>&#128205;</span> {{ a.address }}</li>
-                <li><span>&#9201;</span> {{ a.fittingDurationMinutes }}-minute fitting</li>
-                <li><span>&#128101;</span> Up to {{ a.maxGuests }} guests welcome</li>
-                <li><span>&#10003;</span> {{ a.isFittingFree ? 'Free of charge' : 'Paid fitting' }}</li>
-                @if (a.phone) {
-                  <li><span>&#128222;</span> {{ a.phone }}</li>
+                @if (a.workingHours) {
+                  <li><span>&#128337;</span> {{ a.workingHours }}</li>
                 }
+                <li><span>&#9201;</span> {{ a.fittingDurationMinutes }}-minute fitting</li>
+                <li><span>&#128101;</span> {{ a.maxGuests === 1 ? 'Private — 1 guest only' : 'Up to ' + a.maxGuests + ' guests welcome' }}</li>
                 @if (a.whatsApp) {
                   <li><span>&#128172;</span> WhatsApp: {{ a.whatsApp }}</li>
+                }
+                @if (a.phone) {
+                  <li><span>&#128222;</span> {{ a.phone }}</li>
                 }
                 @if (a.instagram) {
                   <li><span>&#128247;</span> {{ a.instagram }}</li>

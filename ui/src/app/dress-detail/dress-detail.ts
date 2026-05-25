@@ -71,6 +71,11 @@ export class DressDetailComponent implements OnInit, OnDestroy {
       atlier: this.atlierService.getInfo()
     }).subscribe({
       next: ({ dress, atlier }) => {
+        if (dress) {
+          dress.sizes = dress.sizes.slice().sort(
+            (a, b) => (parseInt(a.replace(/\D/g, ''), 10) || 0) - (parseInt(b.replace(/\D/g, ''), 10) || 0)
+          );
+        }
         this.dress.set(dress);
         this.atlier.set(atlier);
         this.loading.set(false);

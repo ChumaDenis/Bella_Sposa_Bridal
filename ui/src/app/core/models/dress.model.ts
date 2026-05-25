@@ -8,6 +8,7 @@ export interface DressListDto {
   color: string;
   heroImageUrl: string | null;
   collectionNames: string[];
+  sizes: string[];
 }
 
 export const SILHOUETTE_LABELS: Record<number, string> = {

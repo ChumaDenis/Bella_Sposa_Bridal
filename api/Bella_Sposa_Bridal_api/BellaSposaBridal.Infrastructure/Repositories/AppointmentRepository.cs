@@ -1,5 +1,6 @@
 using BellaSposaBridal.Application.Interfaces.Repositories;
 using BellaSposaBridal.Domain.Entities;
+using BellaSposaBridal.Domain.Enums;
 using BellaSposaBridal.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -56,5 +57,29 @@ public class AppointmentRepository : IAppointmentRepository
             _context.Appointments.Remove(appointment);
             await _context.SaveChangesAsync();
         }
+    }
+
+    public async Task<List<string>> GetBookedSlotsAsync(DateOnly date)
+    {
+        var start = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0, DateTimeKind.Utc);
+        var end = start.AddDays(1);
+
+        var times = await _context.Appointments
+            .Where(a => a.AppointmentDateTime >= start
+                     && a.AppointmentDateTime < end
+                     && a.Status != AppointmentStatus.Cancelled
+                     && a.Status != AppointmentStatus.Completed)
+            .Select(a => a.AppointmentDateTime)
+            .ToListAsync();
+
+        return times.Select(dt => dt.ToUniversalTime().ToString("HH:mm")).ToList();
+    }
+
+    public async Task<bool> IsSlotTakenAsync(DateTime appointmentDateTime)
+    {
+        return await _context.Appointments.AnyAsync(a =>
+            a.AppointmentDateTime == appointmentDateTime &&
+            a.Status != AppointmentStatus.Cancelled &&
+            a.Status != AppointmentStatus.Completed);
     }
 }

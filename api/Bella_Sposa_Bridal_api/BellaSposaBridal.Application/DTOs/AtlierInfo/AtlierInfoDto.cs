@@ -13,4 +13,5 @@ public class AtlierInfoDto
     public string? Telegram { get; set; }
     public string? Instagram { get; set; }
     public string? WorkingHours { get; set; }
+    public decimal? VipPrice { get; set; }
 }

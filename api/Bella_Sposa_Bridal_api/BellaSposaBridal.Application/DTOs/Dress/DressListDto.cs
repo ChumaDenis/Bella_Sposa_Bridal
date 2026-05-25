@@ -11,4 +11,5 @@ public class DressListDto
     public string Color { get; set; } = string.Empty;
     public string? HeroImageUrl { get; set; }
     public List<string> CollectionNames { get; set; } = new();
+    public List<string> Sizes { get; set; } = new();
 }

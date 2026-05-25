@@ -12,6 +12,8 @@ import { CollectionService } from '../core/services/collection.service';
 import { DressListDto, SILHOUETTE_LABELS } from '../core/models/dress.model';
 import { CollectionDto } from '../core/models/collection.model';
 
+const ukNum = (s: string) => parseInt(s.replace(/\D/g, ''), 10) || 0;
+
 @Component({
   selector: 'app-catalog',
   standalone: true,
@@ -28,6 +30,7 @@ export class CatalogComponent implements OnInit, AfterViewInit {
   collections = signal<CollectionDto[]>([]);
   activeCollection = signal<string | null>(null);
   activeSilhouette = signal<number | null>(null);
+  activeSize = signal<string | null>(null);
   loading = signal(true);
 
   readonly silhouetteLabels = SILHOUETTE_LABELS;
@@ -38,6 +41,7 @@ export class CatalogComponent implements OnInit, AfterViewInit {
     let result = this.dresses();
     const col = this.activeCollection();
     const sil = this.activeSilhouette();
+    const size = this.activeSize();
     if (col) {
       result = result.filter(d => d.collectionNames.some(
         cn => this.collections().find(c => c.id === col)?.name === cn
@@ -46,12 +50,21 @@ export class CatalogComponent implements OnInit, AfterViewInit {
     if (sil !== null) {
       result = result.filter(d => d.silhouette === sil);
     }
+    if (size !== null) {
+      result = result.filter(d => d.sizes.includes(size));
+    }
     return result;
   });
 
   silhouettes = computed(() => {
     const all = this.dresses().map(d => d.silhouette);
     return [...new Set(all)];
+  });
+
+  availableSizes = computed(() => {
+    const all = this.dresses().flatMap(d => d.sizes);
+    const unique = [...new Set(all)];
+    return unique.sort((a, b) => ukNum(a) - ukNum(b));
   });
 
   ngOnInit() {
@@ -96,6 +109,11 @@ export class CatalogComponent implements OnInit, AfterViewInit {
 
   selectSilhouette(sil: number | null) {
     this.activeSilhouette.set(sil);
+    setTimeout(() => this.initReveal(), 50);
+  }
+
+  selectSize(size: string | null) {
+    this.activeSize.set(size);
     setTimeout(() => this.initReveal(), 50);
   }
 }

@@ -118,6 +118,18 @@
   padding: 0.35rem 1rem;
 }
 
+.filter-group--sizes {
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(184,151,90,0.2);
+}
+
+.filter-pill--size {
+  font-size: 0.68rem;
+  padding: 0.35rem 0.85rem;
+  min-width: 3.5rem;
+  text-align: center;
+}
+
 /* ─── DRESS GRID ─────────────────────────────── */
 .dress-grid {
   display: grid;

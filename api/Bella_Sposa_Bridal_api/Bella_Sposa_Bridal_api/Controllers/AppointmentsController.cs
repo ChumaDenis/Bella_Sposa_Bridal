@@ -22,6 +22,13 @@ public class AppointmentsController : ControllerBase
         return Ok(appointments);
     }
 
+    [HttpGet("booked-slots")]
+    public async Task<ActionResult<List<string>>> GetBookedSlots([FromQuery] DateOnly date)
+    {
+        var slots = await _appointmentService.GetBookedSlotsAsync(date);
+        return Ok(slots);
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<AppointmentDto>> GetById(Guid id)
     {
@@ -33,8 +40,15 @@ public class AppointmentsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<AppointmentDto>> Create([FromBody] CreateAppointmentDto dto)
     {
-        var created = await _appointmentService.CreateAsync(dto);
-        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        try
+        {
+            var created = await _appointmentService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
     }
 
     [HttpPatch("{id:guid}/status")]

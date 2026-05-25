@@ -28,8 +28,14 @@ public class AppointmentService : IAppointmentService
         return appointment is null ? null : MapToDto(appointment);
     }
 
+    public async Task<List<string>> GetBookedSlotsAsync(DateOnly date)
+        => await _appointmentRepository.GetBookedSlotsAsync(date);
+
     public async Task<AppointmentDto> CreateAsync(CreateAppointmentDto dto)
     {
+        if (await _appointmentRepository.IsSlotTakenAsync(dto.AppointmentDateTime))
+            throw new InvalidOperationException("This time slot is already booked.");
+
         var dressIds = dto.ViewedDressIds.Take(5).ToList();
 
         var appointment = new Appointment

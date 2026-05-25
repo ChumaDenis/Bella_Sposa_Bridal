@@ -9,4 +9,5 @@ export interface AtlierInfoDto {
   telegram: string | null;
   instagram: string | null;
   workingHours: string | null;
+  vipPrice: number | null;
 }

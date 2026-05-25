@@ -66,16 +66,17 @@ public static class DataSeeder
             ctx.AtlierInfos.Add(new AtlierInfo
             {
                 Id = Guid.NewGuid(),
-                Address = "14 Bridal Lane, Kyiv, Ukraine",
+                Address = "127 Queenstown Road, London SW8 3RH",
                 FittingDurationMinutes = 90,
                 IsFittingFree = true,
-                MaxGuests = 3,
+                MaxGuests = 1,
                 AppointmentRequired = true,
-                Phone = "+38 (044) 000-00-00",
-                WhatsApp = "+38 (099) 000-00-00",
-                Telegram = "@bella_sposa_bridal",
+                Phone = "07466728196",
+                WhatsApp = "07466728196",
+                Telegram = null,
                 Instagram = "@bella_sposa_bridal",
-                WorkingHours = "Mon – Sat: 10:00 – 19:00",
+                WorkingHours = "Mon – Sun: 10:00 – 19:00",
+                VipPrice = 30m,
                 CreatedAt = now,
                 UpdatedAt = now
             });
@@ -261,7 +262,7 @@ public static class DataSeeder
         );
 
         // ── Sizes ─────────────────────────────────────────────────────
-        var commonSizes = new[] { "XS", "S", "M", "L", "XL" };
+        var commonSizes = new[] { "UK6", "UK8", "UK10", "UK12", "UK14", "UK16", "UK18", "UK20" };
         foreach (var id in new[] { d1, d2, d3, d4, d5, d6, d7, d8, d9, d10 })
             ctx.DressSizes.AddRange(commonSizes.Select(s => Size(id, s)));
 

@@ -48,6 +48,25 @@
           }
         </div>
       }
+
+      @if (availableSizes().length > 0) {
+        <div class="filter-group filter-group--sizes">
+          <button
+            class="filter-pill filter-pill--size"
+            [class.active]="activeSize() === null"
+            (click)="selectSize(null)">
+            All Sizes
+          </button>
+          @for (size of availableSizes(); track size) {
+            <button
+              class="filter-pill filter-pill--size"
+              [class.active]="activeSize() === size"
+              (click)="selectSize(size)">
+              {{ size }}
+            </button>
+          }
+        </div>
+      }
     </div>
 
     <!-- Content -->
@@ -61,7 +80,7 @@
       <div class="empty-state">
         <p class="empty-title">No gowns found</p>
         <p class="empty-desc">Try adjusting your filters to discover more of our collection.</p>
-        <button class="filter-pill active" (click)="selectCollection(null); selectSilhouette(null)">
+        <button class="filter-pill active" (click)="selectCollection(null); selectSilhouette(null); selectSize(null)">
           Clear Filters
         </button>
       </div>

@@ -9,4 +9,5 @@ public interface IAppointmentService
     Task<AppointmentDto> CreateAsync(CreateAppointmentDto dto);
     Task UpdateStatusAsync(Guid id, UpdateAppointmentStatusDto dto);
     Task DeleteAsync(Guid id);
+    Task<List<string>> GetBookedSlotsAsync(DateOnly date);
 }

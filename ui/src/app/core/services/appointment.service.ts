@@ -10,4 +10,8 @@ export class AppointmentService {
   create(dto: CreateAppointmentDto) {
     return this.http.post<AppointmentDto>(`${API_BASE}/appointments`, dto);
   }
+
+  getBookedSlots(date: string) {
+    return this.http.get<string[]>(`${API_BASE}/appointments/booked-slots?date=${date}`);
+  }
 }

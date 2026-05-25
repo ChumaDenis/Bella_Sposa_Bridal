@@ -30,12 +30,29 @@ export class AppointmentComponent implements OnInit {
   private viewedSvc         = inject(ViewedDressesService);
   private likedSvc          = inject(LikedDressesService);
 
-  loading       = signal(false);
-  success       = signal(false);
-  error         = signal<string | null>(null);
-  shownDresses  = signal<DressListDto[]>([]);
-  usingLiked    = signal(false);
-  atlier        = signal<AtlierInfoDto | null>(null);
+  loading      = signal(false);
+  success      = signal(false);
+  error        = signal<string | null>(null);
+  shownDresses = signal<DressListDto[]>([]);
+  usingLiked   = signal(false);
+  atlier       = signal<AtlierInfoDto | null>(null);
+  bookedSlots  = signal<string[]>([]);
+  slotsLoading = signal(false);
+
+  readonly morningSlots   = ['10:00', '12:00'];
+  readonly afternoonSlots = ['14:00', '16:00'];
+  readonly eveningSlots   = ['18:00'];
+
+  get selectedTime(): string { return this.form.get('appointmentTime')?.value ?? ''; }
+
+  selectTime(time: string) {
+    if (this.isBooked(time)) return;
+    this.form.patchValue({ appointmentTime: time });
+  }
+
+  isBooked(time: string): boolean {
+    return this.bookedSlots().includes(time);
+  }
 
   form = this.fb.group({
     firstName: ['', Validators.required],
@@ -49,13 +66,11 @@ export class AppointmentComponent implements OnInit {
   });
 
   ngOnInit() {
-    // Load atlier info
     this.atlierService.getInfo().subscribe({
       next: (atlier) => this.atlier.set(atlier),
       error: () => {}
     });
 
-    // Liked dresses take priority; fall back to recently viewed
     const likedIds  = this.likedSvc.getIds();
     const viewedIds = this.viewedSvc.getIds();
     const ids = likedIds.length > 0 ? likedIds : viewedIds;
@@ -72,6 +87,72 @@ export class AppointmentComponent implements OnInit {
         error: () => {}
       });
     }
+
+    this.form.get('appointmentDate')!.valueChanges.subscribe(date => {
+      if (date) {
+        this.loadBookedSlots(date);
+      } else {
+        this.bookedSlots.set([]);
+      }
+    });
+  }
+
+  private loadBookedSlots(date: string) {
+    this.slotsLoading.set(true);
+    this.appointmentService.getBookedSlots(date).subscribe({
+      next: slots => {
+        this.bookedSlots.set(slots);
+        this.slotsLoading.set(false);
+        // Clear selected time if it just became booked
+        if (this.selectedTime && slots.includes(this.selectedTime)) {
+          this.form.patchValue({ appointmentTime: '' });
+        }
+      },
+      error: () => this.slotsLoading.set(false)
+    });
+  }
+
+  submitCallback() {
+    // Clear date/time touched so their validation errors disappear
+    this.form.get('appointmentDate')!.markAsUntouched();
+    this.form.get('appointmentTime')!.markAsUntouched();
+
+    const v = this.form.value;
+    if (!v.firstName || !v.lastName || !v.phone) {
+      this.form.get('firstName')!.markAsTouched();
+      this.form.get('lastName')!.markAsTouched();
+      this.form.get('phone')!.markAsTouched();
+      return;
+    }
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    const likedIds = this.likedSvc.getIds();
+    const viewedDressIds = likedIds.length > 0 ? likedIds : this.viewedSvc.getIds();
+    const callbackNote = v.notes?.trim()
+      ? `${v.notes.trim()}\n\n[Client requested a callback to arrange a convenient time]`
+      : '[Client requested a callback to arrange a convenient time]';
+
+    // Use far-future placeholder so slot-conflict check never triggers
+    const appointmentDateTime = '2099-01-01T00:00:00Z';
+
+    this.appointmentService.create({
+      firstName: v.firstName as string,
+      lastName: v.lastName as string,
+      phone: v.phone as string,
+      email: v.email || null,
+      appointmentDateTime,
+      type: v.type as number,
+      notes: callbackNote,
+      viewedDressIds
+    }).subscribe({
+      next: () => { this.loading.set(false); this.success.set(true); },
+      error: () => {
+        this.loading.set(false);
+        this.error.set('Something went wrong. Please try again or contact us directly.');
+      }
+    });
   }
 
   submit() {
@@ -83,12 +164,13 @@ export class AppointmentComponent implements OnInit {
     const value = this.form.value;
     const dateStr = value.appointmentDate as string;
     const timeStr = value.appointmentTime as string;
-    const appointmentDateTime = new Date(`${dateStr}T${timeStr}`).toISOString();
+    // Send as UTC directly so backend stores exact slot label time
+    const appointmentDateTime = `${dateStr}T${timeStr}:00Z`;
 
     this.loading.set(true);
     this.error.set(null);
 
-    const likedIds  = this.likedSvc.getIds();
+    const likedIds = this.likedSvc.getIds();
     const viewedDressIds = likedIds.length > 0 ? likedIds : this.viewedSvc.getIds();
 
     this.appointmentService.create({
@@ -105,9 +187,16 @@ export class AppointmentComponent implements OnInit {
         this.loading.set(false);
         this.success.set(true);
       },
-      error: () => {
+      error: (err) => {
         this.loading.set(false);
-        this.error.set('Something went wrong. Please try again or contact us directly.');
+        if (err.status === 409) {
+          this.error.set('This time slot has just been taken. Please select a different time.');
+          this.form.patchValue({ appointmentTime: '' });
+          const date = this.form.value.appointmentDate as string;
+          if (date) this.loadBookedSlots(date);
+        } else {
+          this.error.set('Something went wrong. Please try again or contact us directly.');
+        }
       }
     });
   }
