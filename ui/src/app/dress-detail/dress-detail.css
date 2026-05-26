@@ -56,31 +56,31 @@
 
 /* ─── LEFT: Gallery ───────────────────────────────────────────── */
 .photo-col {
-  display: grid;
-  grid-template-columns: 76px 1fr;
+  display: flex;
+  flex-direction: row;
   gap: 0.6rem;
-  align-items: start;
-}
-
-/* when there is only one photo — no thumbs column */
-.photo-col:has(.photo-main:only-child),
-.photo-col:not(:has(.photo-thumbs)) {
-  grid-template-columns: 1fr;
+  position: sticky;
+  top: 5.5rem;
+  height: calc(100dvh - 7rem);
+  min-height: 500px;
 }
 
 /* Thumbnail strip */
 .photo-thumbs {
+  width: 76px;
+  flex-shrink: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  position: sticky;
-  top: 5.5rem;
-  max-height: calc(100dvh - 7rem);
   overflow-y: auto;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(184,151,90,0.35) transparent;
 }
 
-.photo-thumbs::-webkit-scrollbar { display: none; }
+.photo-thumbs::-webkit-scrollbar { width: 2px; }
+.photo-thumbs::-webkit-scrollbar-track { background: transparent; }
+.photo-thumbs::-webkit-scrollbar-thumb { background: rgba(184,151,90,0.4); border-radius: 1px; }
 
 .photo-thumb {
   width: 100%;
@@ -109,21 +109,78 @@
 
 .photo-thumb:hover img { transform: scale(1.06); }
 
+/* Thumb video placeholder */
+.thumb-video {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumb-play-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.38);
+  color: var(--white);
+}
+
 /* Main photo */
 .photo-main {
-  position: sticky;
-  top: 5.5rem;
+  flex: 1;
+  position: relative;
   cursor: zoom-in;
   overflow: hidden;
   background: var(--champagne);
+  height: 100%;
 }
+
+/* When main viewer shows a video */
+.photo-main--video {
+  cursor: default;
+  background: #111;
+}
+
+.main-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.video-expand-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 36px;
+  height: 36px;
+  background: rgba(12,12,12,0.55);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  cursor: pointer;
+  transition: background 0.25s ease;
+  z-index: 2;
+}
+
+.video-expand-btn:hover { background: rgba(12,12,12,0.82); }
 
 .photo-main img {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
   transition: transform 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   object-fit: cover;
+  object-position: top center;
 }
 
 .photo-main:hover img { transform: scale(1.03); }
@@ -564,6 +621,42 @@
   color: var(--white);
 }
 
+/* ─── DRESS VIDEOS ────────────────────────────────────────────── */
+.dress-videos-section {
+  padding: 5rem 0;
+  background: var(--ivory);
+}
+
+.dress-videos-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.dress-videos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  gap: 1.5rem;
+  justify-items: center;
+}
+
+.dress-video-wrap {
+  border-radius: 4px;
+  overflow: hidden;
+  background: #111;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-height: 80vh;
+}
+
+.dress-video {
+  width: 100%;
+  height: auto;
+  max-height: 80vh;
+  display: block;
+  object-fit: contain;
+}
+
 /* ─── RELATED DRESSES ─────────────────────────────────────────── */
 .related-section {
   padding: 5rem 0;
@@ -577,7 +670,7 @@
 
 .related-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 2rem;
   margin-bottom: 3rem;
 }
@@ -721,6 +814,34 @@
 .lb-thumb.active { opacity: 1; border-color: var(--gold); }
 .lb-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
+.lb-video {
+  width: 80vw;
+  max-width: 80vw;
+  max-height: 88dvh;
+  height: auto;
+  display: block;
+}
+
+.lb-thumb-video {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lb-thumb-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.45);
+  color: var(--white);
+}
+
 /* ─── RESPONSIVE ─────────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .product-grid {
@@ -743,20 +864,25 @@
 
   /* On mobile: thumbs go horizontal below the main photo */
   .photo-col {
-    display: flex;
+    position: static;
+    height: auto;
+    min-height: unset;
     flex-direction: column;
     gap: 0.5rem;
   }
 
   .photo-thumbs {
-    position: static;
+    width: 100%;
+    height: auto;
     flex-direction: row;
-    max-height: none;
     overflow-x: auto;
     overflow-y: visible;
     gap: 0.4rem;
     padding-bottom: 0.25rem;
+    scrollbar-width: none;
   }
+
+  .photo-thumbs::-webkit-scrollbar { display: none; }
 
   .photo-thumb {
     width: 60px;
@@ -766,8 +892,20 @@
   }
 
   .photo-main {
-    position: static;
     order: -1;
+    height: auto;
+  }
+
+  .photo-main img {
+    height: auto;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  .main-video {
+    height: auto;
+    max-height: 60vh;
+    object-fit: contain;
   }
 
   .info-col {
@@ -783,6 +921,7 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 1.25rem;
   }
+
 }
 
 @media (max-width: 600px) {

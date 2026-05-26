@@ -2,16 +2,19 @@ import {
   Component, OnDestroy, OnInit, ElementRef, ViewChild, AfterViewInit, inject, signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { NavbarComponent } from '../shared/navbar/navbar';
 import { FooterComponent } from '../shared/footer/footer';
 import { DressService } from '../core/services/dress.service';
 import { ViewedDressesService } from '../core/services/viewed-dresses.service';
 import { DressListDto } from '../core/models/dress.model';
+import { AppointmentService } from '../core/services/appointment.service';
+import { AppointmentTypeConfigDto } from '../core/models/appointment.model';
+import { AtlierService } from '../core/services/atlier.service';
 
 @Component({
   selector: 'app-home',
-  imports: [CommonModule, NavbarComponent, FooterComponent],
+  imports: [CommonModule, RouterLink, NavbarComponent, FooterComponent],
   templateUrl: './home.html',
   styleUrl: './home.css'
 })
@@ -20,27 +23,75 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('heroVideo')  heroVideo!:  ElementRef<HTMLVideoElement>;
   @ViewChild('aboutVideo') aboutVideo!: ElementRef<HTMLVideoElement>;
 
-  private dressService = inject(DressService);
-  private viewedSvc    = inject(ViewedDressesService);
-  private router       = inject(Router);
+  private dressService        = inject(DressService);
+  private viewedSvc           = inject(ViewedDressesService);
+  private router              = inject(Router);
+  private appointmentService  = inject(AppointmentService);
+  private atlierService       = inject(AtlierService);
 
   isMuted      = true;
   isAboutMuted = true;
 
+  private defaultHeroSrc = '/videos/main.mp4';
+  heroVideoSrc = signal(this.defaultHeroSrc);
+
   featuredDresses  = signal<DressListDto[]>([]);
   dressesLoading   = signal(true);
+  services         = signal<AppointmentTypeConfigDto[]>([]);
 
   private observer!:            IntersectionObserver;
   private aboutVideoObserver!:  IntersectionObserver;
 
   ngOnInit() {
-    this.dressService.getAll().subscribe({
-      next: (all) => {
-        this.featuredDresses.set(all.slice(0, 6));
-        this.dressesLoading.set(false);
-        setTimeout(() => this.reObserveReveal(), 80);
+    this.atlierService.getInfo().subscribe({
+      next: (info) => {
+        const desktop = info.heroVideoDesktop || this.defaultHeroSrc;
+        const mobile  = info.heroVideoMobile  || desktop;
+        const src = window.innerWidth < 768 ? mobile : desktop;
+        this.heroVideoSrc.set(src);
+        this.loadHeroVideo(src);
       },
-      error: () => this.dressesLoading.set(false)
+      error: () => {}
+    });
+
+    this.appointmentService.getAppointmentTypes().subscribe({
+      next: (types) => {
+        this.services.set(
+          types
+            .filter(t => t.isActive)
+            .sort((a, b) => a.displayOrder - b.displayOrder)
+        );
+      },
+      error: () => {}
+    });
+
+    this.dressService.getHomepageFeatured().subscribe({
+      next: (dresses) => {
+        if (dresses.length > 0) {
+          this.featuredDresses.set(dresses);
+          this.dressesLoading.set(false);
+          setTimeout(() => this.reObserveReveal(), 80);
+        } else {
+          this.dressService.getAll({ pageSize: 6 }).subscribe({
+            next: (result) => {
+              this.featuredDresses.set(result.items);
+              this.dressesLoading.set(false);
+              setTimeout(() => this.reObserveReveal(), 80);
+            },
+            error: () => this.dressesLoading.set(false)
+          });
+        }
+      },
+      error: () => {
+        this.dressService.getAll({ pageSize: 6 }).subscribe({
+          next: (result) => {
+            this.featuredDresses.set(result.items);
+            this.dressesLoading.set(false);
+            setTimeout(() => this.reObserveReveal(), 80);
+          },
+          error: () => this.dressesLoading.set(false)
+        });
+      }
     });
   }
 
@@ -51,14 +102,20 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
     this.initAboutVideo();
   }
 
-  private startHeroVideo() {
+  private loadHeroVideo(src: string) {
     const video = this.heroVideo?.nativeElement;
     if (!video) return;
+    video.src = src;
     video.muted = true;
+    video.load();
     video.play().catch(() => {
       const resume = () => { video.play(); document.removeEventListener('click', resume); };
       document.addEventListener('click', resume, { once: true });
     });
+  }
+
+  private startHeroVideo() {
+    this.loadHeroVideo(this.heroVideoSrc());
   }
 
   ngOnDestroy() {
@@ -137,9 +194,8 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   }
 
-  goToDress(id: string) {
-    this.viewedSvc.add(id);
-    this.router.navigate(['/catalog', id]);
+  goToDress(slug: string) {
+    this.router.navigate(['/catalog', slug]);
   }
 
   goToCatalog() {
@@ -163,24 +219,4 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
     { num: '03', title: 'Your Day',     desc: 'Your gown is ready. You shine — and we take pride in every single stitch.' },
   ];
 
-  readonly services = [
-    {
-      num: '01',
-      title: 'Initial Appointment',
-      desc: 'Your first visit to our boutique. We get to know you, your vision, and your wedding story — then guide you through a curated selection of gowns.',
-      detail: 'Up to 90 minutes · Complimentary',
-    },
-    {
-      num: '02',
-      title: 'Second Appointment',
-      desc: 'Return to refine your favourites. We narrow the styles, work on silhouette, and move closer to the dress that is truly yours.',
-      detail: 'Up to 60 minutes · By Invitation',
-    },
-    {
-      num: '03',
-      title: 'VIP Appointment',
-      desc: 'An exclusive private experience — the boutique is reserved entirely for you. Champagne, personal styling, and unhurried time to find your perfect gown.',
-      detail: 'Private Boutique · Champagne Included',
-    },
-  ];
 }

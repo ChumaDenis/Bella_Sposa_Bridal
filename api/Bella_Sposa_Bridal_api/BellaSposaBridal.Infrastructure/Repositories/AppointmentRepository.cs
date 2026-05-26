@@ -21,6 +21,7 @@ public class AppointmentRepository : IAppointmentRepository
             .Include(a => a.ViewedDresses)
                 .ThenInclude(vd => vd.Dress)
                     .ThenInclude(d => d != null ? d.Photos : null!)
+            .Include(a => a.Files)
             .OrderBy(a => a.AppointmentDateTime)
             .AsNoTracking()
             .ToListAsync();
@@ -33,6 +34,7 @@ public class AppointmentRepository : IAppointmentRepository
             .Include(a => a.ViewedDresses)
                 .ThenInclude(vd => vd.Dress)
                     .ThenInclude(d => d != null ? d.Photos : null!)
+            .Include(a => a.Files)
             .FirstOrDefaultAsync();
     }
 
@@ -81,5 +83,49 @@ public class AppointmentRepository : IAppointmentRepository
             a.AppointmentDateTime == appointmentDateTime &&
             a.Status != AppointmentStatus.Cancelled &&
             a.Status != AppointmentStatus.Completed);
+    }
+
+    public async Task RescheduleAsync(Guid id, DateTime newDateTime)
+    {
+        var appointment = await _context.Appointments.FindAsync(id);
+        if (appointment is not null)
+        {
+            appointment.AppointmentDateTime = newDateTime;
+            appointment.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task UpdateAdminNotesAsync(Guid id, string? adminNotes)
+    {
+        var appointment = await _context.Appointments.FindAsync(id);
+        if (appointment is not null)
+        {
+            appointment.AdminNotes = adminNotes;
+            appointment.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task<AppointmentFile> AddFileAsync(AppointmentFile file)
+    {
+        _context.AppointmentFiles.Add(file);
+        await _context.SaveChangesAsync();
+        return file;
+    }
+
+    public async Task<AppointmentFile?> GetFileAsync(Guid fileId)
+    {
+        return await _context.AppointmentFiles.FindAsync(fileId);
+    }
+
+    public async Task DeleteFileAsync(Guid fileId)
+    {
+        var file = await _context.AppointmentFiles.FindAsync(fileId);
+        if (file is not null)
+        {
+            _context.AppointmentFiles.Remove(file);
+            await _context.SaveChangesAsync();
+        }
     }
 }

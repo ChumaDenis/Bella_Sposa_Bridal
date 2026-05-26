@@ -14,16 +14,40 @@ public class CollectionRepository : ICollectionRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Collection>> GetAllAsync()
+    public async Task<IEnumerable<Collection>> GetAllAsync(bool includeDeleted = false)
     {
         return await _context.Collections
+            .Where(c => includeDeleted || !c.IsDeleted)
+            .OrderByDescending(c => c.Year)
+            .ThenByDescending(c => c.CreatedAt)
             .AsNoTracking()
             .ToListAsync();
+    }
+
+    public async Task<IEnumerable<(Guid Id, string Name, string Slug)>> GetNamesAsync()
+    {
+        var rows = await _context.Collections
+            .OrderBy(c => c.Name)
+            .Select(c => new { c.Id, c.Name, c.Slug })
+            .AsNoTracking()
+            .ToListAsync();
+        return rows.Select(x => (x.Id, x.Name, x.Slug));
     }
 
     public async Task<Collection?> GetByIdAsync(Guid id)
     {
         return await _context.Collections.FindAsync(id);
+    }
+
+    public async Task<Collection?> GetBySlugAsync(string slug)
+    {
+        return await _context.Collections
+            .FirstOrDefaultAsync(c => c.Slug == slug && c.IsActive && !c.IsDeleted);
+    }
+
+    public async Task<IEnumerable<string>> GetAllSlugsAsync()
+    {
+        return await _context.Collections.Select(c => c.Slug).ToListAsync();
     }
 
     public async Task<Collection> AddAsync(Collection collection)
@@ -45,7 +69,21 @@ public class CollectionRepository : ICollectionRepository
         var collection = await _context.Collections.FindAsync(id);
         if (collection is not null)
         {
-            _context.Collections.Remove(collection);
+            collection.IsDeleted = true;
+            collection.DeletedAt = DateTime.UtcNow;
+            collection.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task RestoreAsync(Guid id)
+    {
+        var collection = await _context.Collections.FindAsync(id);
+        if (collection is not null)
+        {
+            collection.IsDeleted = false;
+            collection.DeletedAt = null;
+            collection.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
         }
     }

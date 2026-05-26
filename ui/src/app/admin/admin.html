@@ -1,150 +1,1439 @@
 <div class="admin-layout">
 
-  <!-- Sidebar -->
+  <!-- ══ SIDEBAR ══════════════════════════════════════════════════ -->
   <aside class="admin-sidebar">
+
+    <!-- Header -->
     <div class="admin-logo">
-      <span class="admin-logo-text">Admin Panel</span>
-      <a routerLink="/" class="admin-logo-link">← Site</a>
+      <span class="admin-logo-text">Admin</span>
+      <div class="admin-logo-actions">
+        <a routerLink="/" class="admin-logo-link">← Site</a>
+        <button class="admin-logout-btn" (click)="logout()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Log out
+        </button>
+      </div>
     </div>
 
-    @if (loading()) {
-      <div class="admin-loading-list">Loading dresses…</div>
-    } @else {
-      <div class="admin-sidebar-stats">
-        {{ activeCount }} active · {{ totalCount }} total
+    <!-- Tabs -->
+    <div class="admin-tabs-wrap">
+      <button class="admin-tabs-arrow" (click)="scrollTabs(-1)" aria-label="Scroll tabs left">&#8249;</button>
+      <div class="admin-tabs" #tabsScroll>
+        <button class="admin-tab" [class.active]="tab() === 'appointments'" (click)="setTab('appointments')">
+          Bookings
+          @if (pendingApptCount > 0) {
+            <span class="admin-tab-badge pending">{{ pendingApptCount }}</span>
+          } @else {
+            <span class="admin-tab-badge">{{ totalApptCount }}</span>
+          }
+        </button>
+        <button class="admin-tab" [class.active]="tab() === 'dresses'" (click)="setTab('dresses')">
+          Dresses
+          <span class="admin-tab-badge">{{ totalDressCount }}</span>
+        </button>
+        <button class="admin-tab" [class.active]="tab() === 'collections'" (click)="setTab('collections')">
+          Collections
+          <span class="admin-tab-badge">{{ totalCollCount }}</span>
+        </button>
+        <button class="admin-tab" [class.active]="tab() === 'silhouettes'" (click)="setTab('silhouettes')">
+          Silhouettes
+          <span class="admin-tab-badge">{{ silhouettes().length }}</span>
+        </button>
+        <button class="admin-tab" [class.active]="tab() === 'settings'" (click)="setTab('settings')">
+          Settings
+        </button>
       </div>
-      <ul class="admin-dress-list">
-        @for (dress of dresses(); track dress.id) {
-          <li class="admin-dress-item"
-              [class.selected]="selected()?.id === dress.id"
-              [class.inactive]="!dress.isActive"
-              (click)="selectDress(dress.id)">
-            <div class="admin-dress-thumb">
-              @if (dress.heroImageUrl) {
-                <img [src]="dress.heroImageUrl" [alt]="dress.name" />
-              } @else {
-                <div class="admin-thumb-placeholder"></div>
-              }
-            </div>
-            <div class="admin-dress-meta">
-              <span class="admin-dress-name">{{ dress.name }}</span>
-              <span class="admin-dress-badge" [class.inactive]="!dress.isActive">
-                {{ dress.isActive ? 'Active' : 'Hidden' }}
-              </span>
-            </div>
-          </li>
+      <button class="admin-tabs-arrow" (click)="scrollTabs(1)" aria-label="Scroll tabs right">&#8250;</button>
+    </div>
+
+    <!-- Appointments sidebar -->
+    @if (tab() === 'appointments') {
+      <div class="admin-sidebar-actions">
+        <button class="admin-add-btn" (click)="startCreateAppt()">+ New Booking</button>
+      </div>
+
+      <!-- Sub-nav for appointment views -->
+      <div class="admin-appt-subnav">
+        <button class="admin-subnav-btn" [class.active]="apptView() === 'list' || apptView() === 'detail' || apptView() === 'create'" (click)="setApptView('list')">Bookings</button>
+        <button class="admin-subnav-btn" [class.active]="apptView() === 'types'" (click)="setApptView('types')">Types</button>
+        <button class="admin-subnav-btn" [class.active]="apptView() === 'schedule'" (click)="setApptView('schedule')">Schedule</button>
+      </div>
+
+      <!-- Filters -->
+      @if (apptView() === 'list' || apptView() === 'detail') {
+        <div class="admin-appt-filters">
+          <input class="admin-filter-search" type="search" placeholder="Search name, phone, email…"
+                 [ngModel]="apptSearch()" (ngModelChange)="apptSearch.set($event); apptDisplayCount.set(20)" />
+          <select class="admin-filter-select" [ngModel]="apptStatusFilter()" (ngModelChange)="apptStatusFilter.set($event); apptDisplayCount.set(20)">
+            <option value="all">All statuses</option>
+            @for (s of apptStatuses; track s.value) {
+              <option [value]="s.label.toLowerCase()">{{ s.label }}</option>
+            }
+          </select>
+          <input class="admin-filter-date" type="date" [ngModel]="apptDateFilter()" (ngModelChange)="apptDateFilter.set($event); apptDisplayCount.set(20)" placeholder="Filter by date" />
+        </div>
+
+        @if (apptLoading()) {
+          <div class="admin-loading-list">Loading…</div>
+        } @else if (filteredAppointments.length === 0) {
+          <div class="admin-appt-empty-list">No appointments found.</div>
+        } @else {
+          <ul class="admin-appt-list" (scroll)="onApptListScroll($event)">
+            @for (a of visibleAppointments; track a.id) {
+              <li class="admin-appt-item"
+                  [class.selected]="selectedAppt()?.id === a.id"
+                  (click)="selectAppt(a)">
+                <div class="admin-appt-item-top">
+                  <span class="admin-appt-name">{{ a.firstName }} {{ a.lastName }}</span>
+                  <span class="admin-appt-status-dot" [style.background]="apptStatusColor(a.status)" [title]="a.status"></span>
+                </div>
+                <div class="admin-appt-item-info">
+                  <span class="admin-appt-date-short">{{ formatApptDate(a.appointmentDateTime) }}</span>
+                </div>
+                <div class="admin-appt-type">{{ apptTypeName(a.typeId) }}</div>
+              </li>
+            }
+            @if (hasMoreAppointments) {
+              <li class="admin-list-more">
+                <span class="admin-list-more-dot"></span>
+                <span class="admin-list-more-dot"></span>
+                <span class="admin-list-more-dot"></span>
+              </li>
+            }
+          </ul>
         }
-      </ul>
+      }
     }
+
+    <!-- Dress sidebar list -->
+    @if (tab() === 'dresses') {
+      <div class="admin-sidebar-actions">
+        <button class="admin-add-btn" (click)="startCreateDress()">+ New Dress</button>
+        <span class="admin-stats">{{ activeDressCount }} active · {{ totalDressCount }} total</span>
+      </div>
+      <div class="admin-show-deleted-row">
+        <label class="admin-check-label">
+          <input type="checkbox" [ngModel]="showDeletedDresses()" (ngModelChange)="toggleShowDeletedDresses()" />
+          Show deleted
+        </label>
+      </div>
+      @if (dressListLoading()) {
+        <div class="admin-loading-list">Loading dresses…</div>
+      } @else {
+        <ul class="admin-dress-list" (scroll)="onDressListScroll($event)">
+          @for (dress of visibleDresses; track dress.id) {
+            <li class="admin-dress-item"
+                [class.selected]="selectedDress()?.id === dress.id"
+                [class.inactive]="!dress.isActive"
+                [class.deleted]="dress.isDeleted"
+                (click)="!dress.isDeleted && selectDress(dress.id)">
+              <div class="admin-dress-thumb">
+                @if (dress.heroImageUrl) {
+                  <img [src]="dress.heroImageUrl" [alt]="dress.name" />
+                } @else {
+                  <div class="admin-thumb-placeholder"></div>
+                }
+              </div>
+              <div class="admin-dress-meta">
+                <span class="admin-dress-name">{{ dress.name }}</span>
+                <div class="admin-dress-row2">
+                  @if (dress.isDeleted) {
+                    <span class="admin-deleted-badge">Deleted</span>
+                    <button class="admin-restore-btn" (click)="$event.stopPropagation(); restoreDress(dress.id)">Restore</button>
+                  } @else {
+                    <span class="admin-dress-dot" [class.active]="dress.isActive"></span>
+                    <span class="admin-dress-type">{{ dress.silhouetteName || '—' }}</span>
+                  }
+                </div>
+              </div>
+            </li>
+          }
+          @if (hasMoreDresses) {
+            <li class="admin-list-more">
+              <span class="admin-list-more-dot"></span>
+              <span class="admin-list-more-dot"></span>
+              <span class="admin-list-more-dot"></span>
+            </li>
+          }
+        </ul>
+      }
+    }
+
+    <!-- Collection sidebar list -->
+    @if (tab() === 'collections') {
+      <div class="admin-sidebar-actions">
+        <button class="admin-add-btn" (click)="startCreateCollection()">+ New Collection</button>
+        <span class="admin-stats">{{ activeCollCount }} active · {{ totalCollCount }} total</span>
+      </div>
+      <div class="admin-show-deleted-row">
+        <label class="admin-check-label">
+          <input type="checkbox" [ngModel]="showDeletedCollections()" (ngModelChange)="toggleShowDeletedCollections()" />
+          Show deleted
+        </label>
+      </div>
+      @if (collectionListLoading()) {
+        <div class="admin-loading-list">Loading collections…</div>
+      } @else {
+        <ul class="admin-dress-list" (scroll)="onCollListScroll($event)">
+          @for (col of visibleCollections; track col.id) {
+            <li class="admin-dress-item"
+                [class.selected]="selectedCollection()?.id === col.id"
+                [class.inactive]="!col.isActive"
+                [class.deleted]="col.isDeleted"
+                (click)="!col.isDeleted && selectCollection(col)">
+              <div class="admin-dress-thumb">
+                @if (col.coverImageUrl) {
+                  <img [src]="col.coverImageUrl" [alt]="col.name" />
+                } @else {
+                  <div class="admin-thumb-placeholder"></div>
+                }
+              </div>
+              <div class="admin-dress-meta">
+                <span class="admin-dress-name">{{ col.name }}</span>
+                @if (col.isDeleted) {
+                  <div class="admin-col-badges">
+                    <span class="admin-deleted-badge">Deleted</span>
+                    <button class="admin-restore-btn" (click)="$event.stopPropagation(); restoreCollection(col.id)">Restore</button>
+                  </div>
+                } @else {
+                  <div class="admin-col-badges">
+                    @if (col.isFeatured) {
+                      <span class="admin-featured-badge">★ #{{ col.featuredOrder }}</span>
+                    }
+                    <span class="admin-dress-badge" [class.inactive]="!col.isActive">
+                      {{ col.isActive ? 'Active' : 'Hidden' }}
+                    </span>
+                  </div>
+                }
+              </div>
+            </li>
+          }
+          @if (hasMoreCollections) {
+            <li class="admin-list-more">
+              <span class="admin-list-more-dot"></span>
+              <span class="admin-list-more-dot"></span>
+              <span class="admin-list-more-dot"></span>
+            </li>
+          }
+        </ul>
+      }
+    }
+
   </aside>
 
-  <!-- Main content -->
+  <!-- ══ MAIN ══════════════════════════════════════════════════════ -->
   <main class="admin-main">
-    @if (!selected() && !detailLoading()) {
-      <div class="admin-empty">
-        <p>Select a dress from the list to manage its photos</p>
+
+    <!-- ─── APPOINTMENTS TAB ───────────────────────────────────────── -->
+    @if (tab() === 'appointments') {
+
+      <!-- Create Appointment -->
+      @if (apptView() === 'create') {
+        <div class="admin-form-panel">
+          <div class="admin-form-header">
+            <h1 class="admin-form-title">New Booking</h1>
+            <button class="admin-btn-ghost" (click)="cancelApptForm()">Cancel</button>
+          </div>
+          @if (apptError()) {
+            <p class="admin-form-error">{{ apptError() }}</p>
+          }
+          <div class="admin-form">
+            <div class="admin-form-section">
+              <h3 class="admin-form-section-title">Customer</h3>
+              <div class="admin-form-row">
+                <div class="admin-field">
+                  <label class="admin-field-label">First Name *</label>
+                  <input class="admin-input" [(ngModel)]="apptForm.firstName" placeholder="First name" />
+                </div>
+                <div class="admin-field">
+                  <label class="admin-field-label">Last Name</label>
+                  <input class="admin-input" [(ngModel)]="apptForm.lastName" placeholder="Last name" />
+                </div>
+              </div>
+              <div class="admin-form-row">
+                <div class="admin-field">
+                  <label class="admin-field-label">Phone *</label>
+                  <input class="admin-input" [(ngModel)]="apptForm.phone" placeholder="+44..." type="tel" />
+                </div>
+                <div class="admin-field">
+                  <label class="admin-field-label">Email</label>
+                  <input class="admin-input" [(ngModel)]="apptForm.email" placeholder="Optional" type="email" />
+                </div>
+              </div>
+            </div>
+            <div class="admin-form-section">
+              <h3 class="admin-form-section-title">Appointment</h3>
+              <div class="admin-form-row">
+                <div class="admin-field">
+                  <label class="admin-field-label">Date *</label>
+                  <input class="admin-input" [(ngModel)]="apptForm.date" type="date" [min]="todayStr" [max]="adminMaxDate" />
+                </div>
+                <div class="admin-field">
+                  <label class="admin-field-label">Time *</label>
+                  <input class="admin-input" [(ngModel)]="apptForm.time" type="time" />
+                </div>
+              </div>
+              <div class="admin-field">
+                <label class="admin-field-label">Type</label>
+                <select class="admin-select" [(ngModel)]="apptForm.typeId">
+                  @for (t of appointmentTypes(); track t.id) {
+                    <option [ngValue]="t.id">{{ t.name }}{{ t.price ? ' (£' + t.price + ')' : '' }}</option>
+                  }
+                </select>
+              </div>
+              <div class="admin-field">
+                <label class="admin-field-label">Notes</label>
+                <textarea class="admin-textarea" [(ngModel)]="apptForm.notes" rows="3" placeholder="Optional notes"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="admin-form-footer">
+            <button class="admin-btn-primary" [disabled]="apptSaving()" (click)="saveAppt()">
+              @if (apptSaving()) { Saving… } @else { Create Booking }
+            </button>
+            <button class="admin-btn-ghost" (click)="cancelApptForm()">Cancel</button>
+          </div>
+        </div>
+      }
+
+      <!-- Appointment Detail -->
+      @else if (apptView() === 'detail' && selectedAppt(); as appt) {
+        <div class="admin-detail">
+          <div class="admin-detail-header">
+            <div>
+              <h1 class="admin-dress-title">{{ appt.firstName }} {{ appt.lastName }}</h1>
+              <p class="admin-dress-tagline">{{ formatApptDate(appt.appointmentDateTime) }}</p>
+            </div>
+            <div class="admin-header-actions">
+              <button class="admin-btn-ghost" (click)="openReschedule(appt)">Reschedule</button>
+              <button class="admin-btn-danger" (click)="deleteAppt(appt.id)">Delete</button>
+            </div>
+          </div>
+
+          <!-- Status bar -->
+          <div class="admin-appt-status-bar">
+            @for (s of apptStatuses; track s.value) {
+              <button class="admin-status-btn"
+                      [class.active]="appt.status === s.label"
+                      [style.--status-color]="s.color"
+                      (click)="updateApptStatus(appt, s.value)">
+                {{ s.label }}
+              </button>
+            }
+          </div>
+
+          <!-- Info grid -->
+          <div class="admin-info-grid">
+            <div class="admin-info-card">
+              <span class="admin-info-label">Type</span>
+              <span class="admin-info-value">{{ apptTypeName(appt.typeId) }}</span>
+            </div>
+            <div class="admin-info-card">
+              <span class="admin-info-label">Phone</span>
+              <span class="admin-info-value">
+                <a [href]="'tel:' + appt.phone">{{ appt.phone }}</a>
+              </span>
+            </div>
+            @if (appt.email) {
+              <div class="admin-info-card">
+                <span class="admin-info-label">Email</span>
+                <span class="admin-info-value">
+                  <a [href]="'mailto:' + appt.email">{{ appt.email }}</a>
+                </span>
+              </div>
+            }
+            <div class="admin-info-card">
+              <span class="admin-info-label">Status</span>
+              <span class="admin-info-value" [style.color]="apptStatusColor(appt.status)">{{ appt.status }}</span>
+            </div>
+            <div class="admin-info-card">
+              <span class="admin-info-label">Created</span>
+              <span class="admin-info-value">{{ formatApptDate(appt.createdAt) }}</span>
+            </div>
+          </div>
+
+          @if (appt.notes) {
+            <div class="admin-section">
+              <h2 class="admin-section-title">Client Notes</h2>
+              <p class="admin-desc-text">{{ appt.notes }}</p>
+            </div>
+          }
+
+          <!-- Admin Notes -->
+          <div class="admin-section">
+            <div class="admin-section-header">
+              <h2 class="admin-section-title">Admin Notes</h2>
+              @if (!editingAdminNotes()) {
+                <button class="admin-btn-ghost-sm" (click)="startEditAdminNotes()">
+                  {{ appt.adminNotes ? 'Edit' : '+ Add Notes' }}
+                </button>
+              }
+            </div>
+            @if (editingAdminNotes()) {
+              <textarea class="admin-textarea admin-notes-textarea"
+                        [ngModel]="adminNotesDraft()"
+                        (ngModelChange)="adminNotesDraft.set($event)"
+                        rows="4"
+                        placeholder="Internal notes — not visible to client…"></textarea>
+              <div class="admin-form-footer" style="margin-top:8px">
+                <button class="admin-btn-primary" [disabled]="adminNotesSaving()" (click)="saveAdminNotes()">
+                  @if (adminNotesSaving()) { Saving… } @else { Save Notes }
+                </button>
+                <button class="admin-btn-ghost" (click)="cancelEditAdminNotes()">Cancel</button>
+              </div>
+            } @else if (appt.adminNotes) {
+              <p class="admin-desc-text admin-admin-notes-text">{{ appt.adminNotes }}</p>
+            } @else {
+              <p class="admin-section-hint">No internal notes yet.</p>
+            }
+          </div>
+
+          <!-- File Attachments -->
+          <div class="admin-section">
+            <h2 class="admin-section-title">
+              Attachments
+              @if (appt.files.length) {
+                <span class="admin-photo-count">{{ appt.files.length }}</span>
+              }
+            </h2>
+
+            <!-- File list -->
+            @if (appt.files.length) {
+              <div class="admin-appt-files">
+                @for (f of appt.files; track f.id) {
+                  <div class="admin-appt-file-row">
+                    <span class="admin-file-icon">{{ fileIcon(f.contentType) }}</span>
+                    <a class="admin-file-name" [href]="f.url" target="_blank" rel="noopener">{{ f.fileName }}</a>
+                    <span class="admin-file-size">{{ formatFileSize(f.size) }}</span>
+                    <button class="admin-file-delete" (click)="deleteApptFile(f.id)" title="Delete file">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Upload area -->
+            <div class="admin-appt-file-dropzone"
+                 [class.drag-over]="dragOver()"
+                 [class.uploading]="fileUploading()"
+                 (dragover)="onDragOver($event)"
+                 (dragleave)="onDragLeave()"
+                 (drop)="onApptFileDrop($event)">
+              @if (fileUploading()) {
+                <span>Uploading…</span>
+              } @else {
+                <label class="admin-appt-file-dropzone-label" for="appt-file-input">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                  <span>Drop files or <u>click to browse</u></span>
+                  <span class="admin-dropzone-hint">Any file type — photos, PDFs, documents</span>
+                </label>
+                <input id="appt-file-input" type="file" multiple hidden (change)="onApptFileInput($event)" />
+              }
+            </div>
+            @if (fileUploadError()) {
+              <p class="admin-upload-error">{{ fileUploadError() }}</p>
+            }
+          </div>
+
+          @if (appt.viewedDresses && appt.viewedDresses.length > 0) {
+            <div class="admin-section">
+              <h2 class="admin-section-title">Dresses of Interest</h2>
+              <div class="admin-appt-dresses">
+                @for (d of appt.viewedDresses; track d?.id) {
+                  @if (d) {
+                    <div class="admin-appt-dress-card admin-appt-dress-card--link" (click)="viewDress(d.id)" title="Open dress">
+                      @if (d.heroImageUrl) {
+                        <img [src]="d.heroImageUrl" [alt]="d.name" />
+                      }
+                      <span>{{ d.name }}</span>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Reschedule form -->
+          @if (showReschedule()) {
+            <div class="admin-reschedule-panel">
+              <h2 class="admin-section-title">Reschedule</h2>
+              <div class="admin-field">
+                <label class="admin-field-label">New Date</label>
+                <input class="admin-input" type="date"
+                       [ngModel]="rescheduleDate()" (ngModelChange)="onRescheduleDateChange($event)"
+                       [min]="todayStr" [max]="adminMaxDate" />
+              </div>
+
+              @if (rescheduleDate()) {
+                @if (rescheduleSlotsLoading()) {
+                  <p class="admin-section-hint">Loading available slots…</p>
+                } @else if (rescheduleSlots().length > 0) {
+                  <div class="admin-field">
+                    <label class="admin-field-label">Available Slots</label>
+                    <div class="admin-reschedule-slots">
+                      @for (s of rescheduleSlots(); track s) {
+                        <button type="button" class="admin-reschedule-slot-btn"
+                                [class.active]="rescheduleTime() === s"
+                                (click)="rescheduleTime.set(s)">{{ s }}</button>
+                      }
+                    </div>
+                  </div>
+                } @else {
+                  <p class="admin-section-hint">No free slots for this day.</p>
+                }
+
+                <div class="admin-field">
+                  <label class="admin-field-label">Custom Time</label>
+                  <input class="admin-input admin-reschedule-time-input" type="time"
+                         [ngModel]="rescheduleTime()" (ngModelChange)="rescheduleTime.set($event)" />
+                </div>
+              }
+
+              <div class="admin-form-footer" style="margin-top:16px">
+                <button class="admin-btn-primary" [disabled]="rescheduling()" (click)="saveReschedule()">
+                  @if (rescheduling()) { Saving… } @else { Save New Time }
+                </button>
+                <button class="admin-btn-ghost" (click)="cancelReschedule()">Cancel</button>
+              </div>
+            </div>
+          }
+
+        </div>
+      }
+
+      <!-- Appointment Types management -->
+      @else if (apptView() === 'types') {
+        <div class="admin-detail">
+          <div class="admin-detail-header">
+            <div>
+              <h1 class="admin-dress-title">Appointment Types</h1>
+              <p class="admin-dress-tagline">Manage booking types and prices</p>
+            </div>
+            @if (typeMode() === 'idle') {
+              <button class="admin-btn-secondary" (click)="startCreateType()">+ New Type</button>
+            }
+          </div>
+
+          @if (typeMode() === 'create' || typeMode() === 'edit') {
+            <div class="admin-inline-form">
+              <h3 class="admin-form-section-title">{{ typeMode() === 'create' ? 'New Type' : 'Edit Type' }}</h3>
+              @if (typeError()) { <p class="admin-form-error">{{ typeError() }}</p> }
+              <div class="admin-form-row">
+                <div class="admin-field">
+                  <label class="admin-field-label">Name *</label>
+                  <input class="admin-input" [(ngModel)]="typeForm.name" placeholder="e.g. First Appointment" />
+                </div>
+                <div class="admin-field">
+                  <label class="admin-field-label">Price (£)</label>
+                  <input class="admin-input" [(ngModel)]="typeForm.price" placeholder="Leave empty if free" type="number" min="0" />
+                </div>
+              </div>
+              <div class="admin-form-row">
+                <div class="admin-field">
+                  <label class="admin-field-label">Description</label>
+                  <input class="admin-input" [(ngModel)]="typeForm.description" placeholder="Optional description" />
+                </div>
+                <div class="admin-field">
+                  <label class="admin-field-label">Display Order</label>
+                  <input class="admin-input" [(ngModel)]="typeForm.displayOrder" type="number" min="0" />
+                </div>
+              </div>
+              <div class="admin-form-row">
+                <div class="admin-field" style="flex:1">
+                  <label class="admin-field-label">Main Description (homepage "Your Bridal Experience")</label>
+                  <textarea class="admin-input" [(ngModel)]="typeForm.mainDescription" placeholder="Paragraph shown on the homepage services section" rows="3" style="resize:vertical"></textarea>
+                </div>
+              </div>
+              <div class="admin-form-row">
+                <div class="admin-field">
+                  <label class="admin-field-label">Detail Line</label>
+                  <input class="admin-input" [(ngModel)]="typeForm.detail" placeholder="e.g. Up to 90 minutes · Complimentary" />
+                </div>
+              </div>
+              <label class="admin-check-label" style="margin-bottom:16px">
+                <input type="checkbox" [(ngModel)]="typeForm.isActive" />
+                Active (available for booking)
+              </label>
+              <div class="admin-form-footer">
+                <button class="admin-btn-primary" [disabled]="typeSaving()" (click)="saveType()">
+                  @if (typeSaving()) { Saving… } @else { {{ typeMode() === 'create' ? 'Create' : 'Save' }} }
+                </button>
+                <button class="admin-btn-ghost" (click)="cancelTypeForm()">Cancel</button>
+              </div>
+            </div>
+          }
+
+          <div class="admin-types-list">
+            @for (t of appointmentTypes(); track t.id) {
+              <div class="admin-type-row" [class.inactive]="!t.isActive">
+                <div class="admin-type-info">
+                  <span class="admin-type-name">{{ t.name }}</span>
+                  @if (t.price != null) {
+                    <span class="admin-type-price">£{{ t.price }}</span>
+                  } @else {
+                    <span class="admin-type-free">Free</span>
+                  }
+                  @if (!t.isActive) {
+                    <span class="admin-type-inactive-badge">Hidden</span>
+                  }
+                  @if (t.description) {
+                    <p class="admin-type-desc">{{ t.description }}</p>
+                  }
+                </div>
+                <div class="admin-type-actions">
+                  <button class="admin-btn-ghost-sm" (click)="startEditType(t)">Edit</button>
+                  <button class="admin-btn-ghost-sm danger" (click)="deleteType(t.id)">Delete</button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Schedule management -->
+      @else if (apptView() === 'schedule') {
+        <div class="admin-detail">
+          <div class="admin-detail-header">
+            <div>
+              <h1 class="admin-dress-title">Schedule</h1>
+              <p class="admin-dress-tagline">Manage available time slots and day overrides</p>
+            </div>
+          </div>
+
+          <!-- Global time slots -->
+          <div class="admin-section">
+            <h2 class="admin-section-title">Default Time Slots</h2>
+            <p class="admin-section-hint">These slots appear on the booking page for days without a custom override.</p>
+            <div class="admin-slots-list">
+              @for (slot of editingSlots(); track slot) {
+                <div class="admin-slot-chip">
+                  {{ slot }}
+                  <button class="admin-slot-remove" (click)="removeSlot(slot)">×</button>
+                </div>
+              }
+            </div>
+            <div class="admin-slot-add-row">
+              <input class="admin-input admin-slot-input" type="time"
+                     [ngModel]="newSlotTime()" (ngModelChange)="newSlotTime.set($event)" />
+              <button class="admin-btn-secondary" (click)="addSlot()">Add Slot</button>
+            </div>
+            <button class="admin-btn-primary" [disabled]="slotsSaving()" (click)="saveSlots()" style="margin-top:16px">
+              @if (slotsSaving()) { Saving… } @else { Save Time Slots }
+            </button>
+          </div>
+
+          <!-- Day overrides -->
+          <div class="admin-section">
+            <h2 class="admin-section-title">Day Override</h2>
+            <p class="admin-section-hint">Close a specific day or set custom time slots for it.</p>
+            <div class="admin-day-picker-row">
+              <input class="admin-input admin-day-input" type="date"
+                     [ngModel]="dayOverrideDate()" (ngModelChange)="dayOverrideDate.set($event); loadDayOverride()" />
+              @if (dayHasOverride()) {
+                <span class="admin-day-override-badge">Override active</span>
+                <button class="admin-btn-ghost-sm danger" (click)="deleteDayOverride()">Remove Override</button>
+              }
+            </div>
+
+            @if (dayOverrideDate()) {
+              <div class="admin-day-form">
+                @if (dayLoading()) {
+                  <p class="admin-section-hint">Loading…</p>
+                } @else {
+                  <label class="admin-check-label">
+                    <input type="checkbox" [ngModel]="dayIsClosed()" (ngModelChange)="dayIsClosed.set($event)" />
+                    Close this day entirely (no bookings)
+                  </label>
+
+                  @if (!dayIsClosed()) {
+                    <div style="margin-top:16px">
+                      <p class="admin-section-hint">Select available time slots for this day:</p>
+                      <div class="admin-day-slot-checks">
+                        @for (slot of timeSlots(); track slot.id) {
+                          <label class="admin-day-slot-label">
+                            <input type="checkbox"
+                                   [checked]="isDaySlotEnabled(slot.time)"
+                                   (change)="toggleDaySlot(slot.time)" />
+                            {{ slot.time }}
+                          </label>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  <button class="admin-btn-primary" [disabled]="daySaving()" (click)="saveDayOverride()" style="margin-top:16px">
+                    @if (daySaving()) { Saving… } @else { Save Override }
+                  </button>
+                }
+              </div>
+            }
+          </div>
+
+        </div>
+      }
+
+      <!-- Empty / list view when nothing selected -->
+      @else if (apptView() === 'list') {
+        <div class="admin-empty">
+          <p>Select a booking from the list<br>or <button class="admin-empty-link" (click)="startCreateAppt()">create a new one</button></p>
+        </div>
+      }
+
+    }
+
+    <!-- ─── DRESSES TAB ─────────────────────────────────────────── -->
+    @if (tab() === 'dresses') {
+
+      @if (dressMode() === 'create' || dressMode() === 'edit') {
+        <div class="admin-form-panel">
+          <div class="admin-form-header">
+            <h1 class="admin-form-title">{{ dressMode() === 'create' ? 'Create New Dress' : 'Edit Dress' }}</h1>
+            <button class="admin-btn-ghost" (click)="cancelDressForm()">Cancel</button>
+          </div>
+          @if (dressError()) { <p class="admin-form-error">{{ dressError() }}</p> }
+          <div class="admin-form">
+            <div class="admin-form-section">
+              <h3 class="admin-form-section-title">Basic Info</h3>
+              <div class="admin-field">
+                <label class="admin-field-label">Name *</label>
+                <input class="admin-input" [(ngModel)]="dressForm.name" placeholder="Dress name" />
+              </div>
+              <div class="admin-field">
+                <label class="admin-field-label">URL Slug</label>
+                <input class="admin-input" [(ngModel)]="dressForm.slug" placeholder="auto-generated from name if empty" />
+                <span class="admin-field-hint">/catalog/{{ dressForm.slug || '…' }}</span>
+              </div>
+              <div class="admin-field">
+                <label class="admin-field-label">Tagline</label>
+                <input class="admin-input" [(ngModel)]="dressForm.tagline" placeholder="Short tagline" />
+              </div>
+              <div class="admin-field">
+                <label class="admin-field-label">Description</label>
+                <textarea class="admin-textarea" [(ngModel)]="dressForm.description" rows="4" placeholder="Full description"></textarea>
+              </div>
+            </div>
+            <div class="admin-form-section">
+              <h3 class="admin-form-section-title">Details</h3>
+              <div class="admin-form-row">
+                <div class="admin-field">
+                  <label class="admin-field-label">Silhouette</label>
+                  <select class="admin-select" [(ngModel)]="dressForm.silhouette">
+                    @for (s of silhouetteOptions; track s.value) {
+                      <option [ngValue]="s.value">{{ s.label }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="admin-field">
+                  <label class="admin-field-label">Color</label>
+                  <input class="admin-input" [(ngModel)]="dressForm.color" placeholder="e.g. Ivory, Blush" />
+                </div>
+              </div>
+              <div class="admin-form-row">
+                <div class="admin-field">
+                  <label class="admin-field-label">Material</label>
+                  <input class="admin-input" [(ngModel)]="dressForm.material" placeholder="Fabric / material" />
+                </div>
+                <div class="admin-field">
+                  <label class="admin-field-label">Corset Type</label>
+                  <input class="admin-input" [(ngModel)]="dressForm.corsetType" placeholder="Corset type" />
+                </div>
+              </div>
+              <div class="admin-form-row">
+                <div class="admin-field">
+                  <label class="admin-field-label">Train Description</label>
+                  <input class="admin-input" [(ngModel)]="dressForm.trainDescription" placeholder="Optional" />
+                </div>
+                <div class="admin-field">
+                  <label class="admin-field-label">Decoration</label>
+                  <input class="admin-input" [(ngModel)]="dressForm.decoration" placeholder="Optional" />
+                </div>
+              </div>
+            </div>
+            <div class="admin-form-section">
+              <h3 class="admin-form-section-title">Sleeves</h3>
+              <label class="admin-check-label">
+                <input type="checkbox" [(ngModel)]="dressForm.hasSleeves" /> Has Sleeves
+              </label>
+              @if (dressForm.hasSleeves) {
+                <div class="admin-field" style="margin-top:12px">
+                  <label class="admin-field-label">Sleeve Description</label>
+                  <input class="admin-input" [(ngModel)]="dressForm.sleeveDescription" placeholder="Describe sleeves" />
+                </div>
+              }
+            </div>
+            <div class="admin-form-section">
+              <h3 class="admin-form-section-title">Options</h3>
+              <div class="admin-checks">
+                <label class="admin-check-label">
+                  <input type="checkbox" [(ngModel)]="dressForm.customTailoringAvailable" /> Custom Tailoring Available
+                </label>
+                <label class="admin-check-label">
+                  <input type="checkbox" [(ngModel)]="dressForm.isActive" /> Active (visible on site)
+                </label>
+              </div>
+            </div>
+            <div class="admin-form-section">
+              <h3 class="admin-form-section-title">Collections</h3>
+              @if (collectionNames().length === 0) {
+                <p class="admin-form-hint">No collections created yet.</p>
+              } @else {
+                <div class="admin-coll-checks">
+                  @for (col of collectionNames(); track col.id) {
+                    <label class="admin-coll-check-item">
+                      <input type="checkbox" [checked]="isDressCollSelected(col.id)" (change)="toggleDressCollection(col.id)" />
+                      {{ col.name }}
+                    </label>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+          <div class="admin-form-footer">
+            <button class="admin-btn-primary" [disabled]="dressSaving()" (click)="saveDress()">
+              @if (dressSaving()) { Saving… } @else { {{ dressMode() === 'create' ? 'Create Dress' : 'Save Changes' }} }
+            </button>
+            <button class="admin-btn-ghost" (click)="cancelDressForm()">Cancel</button>
+          </div>
+        </div>
+      }
+
+      @else if (selectedDress(); as dress) {
+        <div class="admin-detail">
+          <div class="admin-detail-header">
+            <div>
+              <h1 class="admin-dress-title">{{ dress.name }}</h1>
+              <p class="admin-dress-tagline">{{ dress.silhouetteName }}{{ dress.tagline ? ' · ' + dress.tagline : '' }}</p>
+            </div>
+            <div class="admin-header-actions">
+              <a class="admin-btn-secondary" [href]="'/catalog/' + dress.slug" target="_blank" rel="noopener">View on site ↗</a>
+              <button class="admin-btn-secondary" (click)="startEditDress()">Edit Info</button>
+              <button class="admin-toggle-btn" [class.active]="dress.isActive" (click)="toggleDressActive(dress.id, dress.isActive)">
+                {{ dress.isActive ? 'Hide from site' : 'Show on site' }}
+              </button>
+              <button class="admin-btn-danger" (click)="deleteDress(dress.id)">Delete</button>
+            </div>
+          </div>
+          <!-- Homepage Featured Panel -->
+          <div class="admin-featured-panel">
+            <div class="admin-featured-header">
+              <span class="admin-featured-title">★ Our Gowns (Homepage)</span>
+              <span class="admin-featured-hint">Up to 6 dresses shown in the homepage gallery</span>
+            </div>
+            <div class="admin-featured-slots admin-featured-slots--6">
+              @for (slot of [1, 2, 3, 4, 5, 6]; track slot) {
+                <div class="admin-featured-slot" [class.mine]="dress.isHomepageFeatured && dress.homepageFeaturedOrder === slot">
+                  <span class="admin-slot-label">#{{ slot }}</span>
+                  @if (homepageSlotDress(slot); as s) {
+                    <span class="admin-slot-name">{{ s.name }}</span>
+                  } @else {
+                    <span class="admin-slot-empty">— empty —</span>
+                  }
+                  <button class="admin-slot-btn"
+                          [class.active]="dress.isHomepageFeatured && dress.homepageFeaturedOrder === slot"
+                          (click)="setHomepageFeatured(dress.id, !(dress.isHomepageFeatured && dress.homepageFeaturedOrder === slot), slot)">
+                    {{ dress.isHomepageFeatured && dress.homepageFeaturedOrder === slot ? 'Remove' : 'Set #' + slot }}
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="admin-info-grid">
+            <div class="admin-info-card">
+              <span class="admin-info-label">Silhouette</span>
+              <span class="admin-info-value">{{ dress.silhouetteName }}</span>
+            </div>
+            <div class="admin-info-card">
+              <span class="admin-info-label">Color</span>
+              <span class="admin-info-value">{{ dress.color || '—' }}</span>
+            </div>
+            <div class="admin-info-card">
+              <span class="admin-info-label">Material</span>
+              <span class="admin-info-value">{{ dress.material || '—' }}</span>
+            </div>
+            <div class="admin-info-card">
+              <span class="admin-info-label">Corset</span>
+              <span class="admin-info-value">{{ dress.corsetType || '—' }}</span>
+            </div>
+            <div class="admin-info-card">
+              <span class="admin-info-label">Custom Tailoring</span>
+              <span class="admin-info-value">{{ dress.customTailoringAvailable ? 'Yes' : 'No' }}</span>
+            </div>
+            <div class="admin-info-card">
+              <span class="admin-info-label">Collections</span>
+              <span class="admin-info-value">{{ dress.collectionNames.join(', ') || '—' }}</span>
+            </div>
+            @if (dress.trainDescription) {
+              <div class="admin-info-card">
+                <span class="admin-info-label">Train</span>
+                <span class="admin-info-value">{{ dress.trainDescription }}</span>
+              </div>
+            }
+            @if (dress.hasSleeves) {
+              <div class="admin-info-card">
+                <span class="admin-info-label">Sleeves</span>
+                <span class="admin-info-value">{{ dress.sleeveDescription || 'Yes' }}</span>
+              </div>
+            }
+          </div>
+          @if (dress.description) {
+            <div class="admin-section">
+              <p class="admin-desc-text">{{ dress.description }}</p>
+            </div>
+          }
+          <div class="admin-section">
+            <h2 class="admin-section-title">Add Photos</h2>
+            <div class="admin-upload-controls">
+              <label class="admin-type-label">Photo type:</label>
+              <div class="admin-type-pills">
+                @for (t of photoTypes; track t.value) {
+                  <button class="admin-type-pill" [class.active]="newPhotoType() === t.value" (click)="newPhotoType.set(t.value)">
+                    {{ t.label }}
+                  </button>
+                }
+              </div>
+            </div>
+            <div class="admin-dropzone" [class.drag-over]="dragOver()" [class.uploading]="uploading()"
+                 (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)">
+              @if (uploading()) {
+                <div class="admin-upload-spinner">Uploading…</div>
+              } @else {
+                <label class="admin-dropzone-label" for="file-input">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                  <span>Drop images here or <u>click to browse</u></span>
+                  <span class="admin-dropzone-hint">JPEG, PNG, WebP, HEIC, TIFF — up to 30 MB each, multiple files supported</span>
+                </label>
+                <input id="file-input" type="file" accept="image/*" multiple hidden (change)="onFileInput($event)" />
+              }
+            </div>
+            @if (uploadError()) { <p class="admin-upload-error">{{ uploadError() }}</p> }
+          </div>
+          <div class="admin-section">
+            <h2 class="admin-section-title">Photos <span class="admin-photo-count">{{ dress.photos.length }}</span></h2>
+            @if (dress.photos.length === 0) {
+              <p class="admin-no-photos">No photos yet. Upload some above.</p>
+            } @else {
+              <p class="admin-photo-hint">Drag cards to reorder</p>
+              <div class="admin-photo-grid">
+                @for (photo of dress.photos; track photo.id; let i = $index) {
+                  <div class="admin-photo-card"
+                       draggable="true"
+                       [class.dragging]="dragPhotoIdx() === i"
+                       [class.drag-over]="dragOverIdx() === i && dragPhotoIdx() !== i"
+                       (dragstart)="onPhotoDragStart($event, i)"
+                       (dragover)="onPhotoDragOver($event, i)"
+                       (dragleave)="onPhotoDragLeave($event)"
+                       (drop)="onPhotoDrop($event, i)"
+                       (dragend)="onPhotoDragEnd()">
+                    <img [src]="photo.url" [alt]="photo.altText ?? dress.name" draggable="false" />
+                    <div class="admin-photo-overlay">
+                      <span class="admin-photo-type">{{ photoTypeLabel(photo.type) }}</span>
+                      <div class="admin-photo-actions">
+                        <button class="admin-photo-download" (click)="downloadPhoto(photo.url, photo.type)" title="Download">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                          </svg>
+                        </button>
+                        <button class="admin-photo-delete" (click)="deletePhoto(photo.id)" title="Delete">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                            <path d="M10 11v6M14 11v6"/>
+                            <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- ── VIDEOS ──────────────────────────────────────────────── -->
+          <div class="admin-section">
+            <h2 class="admin-section-title">Add Video</h2>
+            <div class="admin-upload-controls">
+              <label class="admin-type-label">Video type:</label>
+              <div class="admin-type-pills">
+                @for (t of videoTypes; track t.value) {
+                  <button class="admin-type-pill" [class.active]="newVideoType() === t.value"
+                          (click)="newVideoType.set(t.value)">{{ t.label }}</button>
+                }
+              </div>
+            </div>
+            <div class="admin-dropzone" [class.uploading]="uploadingVideo()">
+              @if (uploadingVideo()) {
+                <div class="admin-upload-spinner">Uploading…</div>
+              } @else {
+                <label class="admin-dropzone-label" for="video-input">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="23 7 16 12 23 17 23 7"/>
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                  </svg>
+                  <span>Click to select video</span>
+                  <span class="admin-dropzone-hint">MP4, MOV, WebM — any size</span>
+                </label>
+                <input id="video-input" type="file" accept="video/*" hidden (change)="onVideoFileInput($event)" />
+              }
+            </div>
+            @if (videoUploadError()) {
+              <p class="admin-upload-error">{{ videoUploadError() }}</p>
+            }
+          </div>
+
+          <div class="admin-section">
+            <h2 class="admin-section-title">
+              Videos <span class="admin-photo-count">{{ selectedDress()!.videos.length }}</span>
+            </h2>
+            @if (selectedDress()!.videos.length === 0) {
+              <p class="admin-no-photos">No videos yet. Upload one above.</p>
+            } @else {
+              <div class="admin-video-list">
+                @for (video of selectedDress()!.videos; track video.id) {
+                  <div class="admin-video-item">
+                    <video class="admin-video-preview" [src]="video.url" controls muted preload="metadata"></video>
+                    <div class="admin-video-meta">
+                      <span class="admin-photo-type">{{ videoTypeLabel(video.type) }}</span>
+                      <button class="admin-photo-delete" (click)="deleteVideo(video.id)" title="Delete">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                          <path d="M10 11v6M14 11v6"/>
+                          <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+      }
+
+      @else {
+        @if (dressDetailLoading()) {
+          <div class="admin-empty"><p>Loading…</p></div>
+        } @else {
+          <div class="admin-empty">
+            <p>Select a dress from the list or<br><button class="admin-empty-link" (click)="startCreateDress()">create a new one</button></p>
+          </div>
+        }
+      }
+
+    }
+
+    <!-- ─── COLLECTIONS TAB ──────────────────────────────────────── -->
+    @if (tab() === 'collections') {
+
+      @if (collectionMode() === 'create' || collectionMode() === 'edit') {
+        <div class="admin-form-panel">
+          <div class="admin-form-header">
+            <h1 class="admin-form-title">{{ collectionMode() === 'create' ? 'Create New Collection' : 'Edit Collection' }}</h1>
+            <button class="admin-btn-ghost" (click)="cancelCollectionForm()">Cancel</button>
+          </div>
+          @if (collectionError()) { <p class="admin-form-error">{{ collectionError() }}</p> }
+          <div class="admin-form">
+            <div class="admin-form-section">
+              <h3 class="admin-form-section-title">Info</h3>
+              <div class="admin-field">
+                <label class="admin-field-label">Name *</label>
+                <input class="admin-input" [(ngModel)]="collectionForm.name" placeholder="Collection name" />
+              </div>
+              <div class="admin-form-row">
+                <div class="admin-field">
+                  <label class="admin-field-label">Season</label>
+                  <input class="admin-input" [(ngModel)]="collectionForm.season" placeholder="e.g. Spring / Summer" />
+                </div>
+                <div class="admin-field">
+                  <label class="admin-field-label">Year</label>
+                  <input class="admin-input" type="number" [(ngModel)]="collectionForm.year" placeholder="2025" />
+                </div>
+              </div>
+              <div class="admin-field">
+                <label class="admin-field-label">Description</label>
+                <textarea class="admin-textarea" [(ngModel)]="collectionForm.description" rows="4" placeholder="Collection description"></textarea>
+              </div>
+            </div>
+            <div class="admin-form-section">
+              <h3 class="admin-form-section-title">Cover Photo <span class="admin-form-section-hint">Desktop</span></h3>
+              <div class="admin-cover-upload">
+                @if (collectionForm.coverImageUrl) {
+                  <img class="admin-cover-preview" [src]="collectionForm.coverImageUrl" alt="Cover preview" />
+                } @else {
+                  <div class="admin-cover-placeholder">No cover photo</div>
+                }
+                <div class="admin-cover-actions">
+                  <label class="admin-btn-secondary" [class.loading]="coverUploading()">
+                    @if (coverUploading()) { Uploading… } @else { Choose Photo }
+                    <input type="file" accept="image/*" hidden (change)="onCoverInput($event)" />
+                  </label>
+                  @if (collectionForm.coverImageUrl) {
+                    <button class="admin-btn-ghost-sm" (click)="collectionForm.coverImageUrl = ''">Remove</button>
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="admin-form-section">
+              <h3 class="admin-form-section-title">Cover Photo <span class="admin-form-section-hint">Mobile</span></h3>
+              <p class="admin-form-section-desc">Optional. Shown on screens ≤ 767 px. Falls back to desktop photo if not set.</p>
+              <div class="admin-cover-upload">
+                @if (collectionForm.coverImageUrlMobile) {
+                  <img class="admin-cover-preview" [src]="collectionForm.coverImageUrlMobile" alt="Mobile cover preview" />
+                } @else {
+                  <div class="admin-cover-placeholder">No mobile photo</div>
+                }
+                <div class="admin-cover-actions">
+                  <label class="admin-btn-secondary" [class.loading]="coverMobileUploading()">
+                    @if (coverMobileUploading()) { Uploading… } @else { Choose Photo }
+                    <input type="file" accept="image/*" hidden (change)="onCoverMobileInput($event)" />
+                  </label>
+                  @if (collectionForm.coverImageUrlMobile) {
+                    <button class="admin-btn-ghost-sm" (click)="collectionForm.coverImageUrlMobile = ''">Remove</button>
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="admin-form-section">
+              <h3 class="admin-form-section-title">Visibility</h3>
+              <label class="admin-check-label">
+                <input type="checkbox" [(ngModel)]="collectionForm.isActive" /> Active (visible on site)
+              </label>
+            </div>
+          </div>
+          <div class="admin-form-footer">
+            <button class="admin-btn-primary" [disabled]="collectionSaving()" (click)="saveCollection()">
+              @if (collectionSaving()) { Saving… } @else { {{ collectionMode() === 'create' ? 'Create Collection' : 'Save Changes' }} }
+            </button>
+            <button class="admin-btn-ghost" (click)="cancelCollectionForm()">Cancel</button>
+          </div>
+        </div>
+      }
+
+      @else if (selectedCollection(); as col) {
+        <div class="admin-detail">
+          <div class="admin-detail-header">
+            <div>
+              <h1 class="admin-dress-title">{{ col.name }}</h1>
+              <p class="admin-dress-tagline">{{ col.season ? col.season + ' · ' : '' }}{{ col.year }}</p>
+            </div>
+            <div class="admin-header-actions">
+              <button class="admin-btn-secondary" (click)="startEditCollection()">Edit</button>
+              <button class="admin-toggle-btn" [class.active]="col.isActive" (click)="toggleCollectionActive(col.id, col.isActive)">
+                {{ col.isActive ? 'Hide from site' : 'Show on site' }}
+              </button>
+              <button class="admin-btn-danger" (click)="deleteCollection(col.id)">Delete</button>
+            </div>
+          </div>
+
+          <div class="admin-featured-panel">
+            <div class="admin-featured-header">
+              <span class="admin-featured-title">★ Navigation Dropdown</span>
+              <span class="admin-featured-hint">Exactly 2 collections appear in the navbar mega-menu</span>
+            </div>
+            <div class="admin-featured-slots">
+              @for (slot of [1, 2]; track slot) {
+                <div class="admin-featured-slot" [class.mine]="col.isFeatured && col.featuredOrder === slot">
+                  <span class="admin-slot-label">Slot {{ slot }}</span>
+                  @if (featuredSlot(slot); as s) {
+                    <span class="admin-slot-name">{{ s.name }}</span>
+                  } @else {
+                    <span class="admin-slot-empty">— empty —</span>
+                  }
+                  <button class="admin-slot-btn"
+                          [class.active]="col.isFeatured && col.featuredOrder === slot"
+                          (click)="setFeatured(col.id, !(col.isFeatured && col.featuredOrder === slot), slot)">
+                    {{ col.isFeatured && col.featuredOrder === slot ? 'Remove' : 'Set as #' + slot }}
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="admin-collection-detail">
+            @if (col.coverImageUrl) {
+              <div class="admin-col-cover-wrap">
+                <img class="admin-col-cover-img" [src]="col.coverImageUrl" [alt]="col.name" />
+              </div>
+            }
+            <div class="admin-info-grid">
+              <div class="admin-info-card">
+                <span class="admin-info-label">Season</span>
+                <span class="admin-info-value">{{ col.season || '—' }}</span>
+              </div>
+              <div class="admin-info-card">
+                <span class="admin-info-label">Year</span>
+                <span class="admin-info-value">{{ col.year }}</span>
+              </div>
+              <div class="admin-info-card">
+                <span class="admin-info-label">Status</span>
+                <span class="admin-info-value">{{ col.isActive ? 'Active' : 'Hidden' }}</span>
+              </div>
+            </div>
+            @if (col.description) {
+              <div class="admin-section">
+                <h2 class="admin-section-title">Description</h2>
+                <p class="admin-desc-text">{{ col.description }}</p>
+              </div>
+            }
+          </div>
+
+          <div class="admin-section">
+            <h2 class="admin-section-title">Navbar Dropdown Dresses</h2>
+            <p class="admin-section-hint">Pin up to 3 dresses to appear first in the navbar mega-menu for this collection.</p>
+            <div class="admin-nav-slots">
+              @for (slot of [1, 2, 3]; track slot) {
+                <div class="admin-nav-slot">
+                  <span class="admin-nav-slot-num">#{{ slot }}</span>
+                  @if (navSlotDress(slot); as d) {
+                    <span class="admin-nav-slot-name">{{ d.name }}</span>
+                    <button class="admin-nav-unpin" (click)="setNavOrder(d.id, null)" title="Unpin">×</button>
+                  } @else {
+                    <span class="admin-nav-slot-empty">Empty</span>
+                  }
+                </div>
+              }
+            </div>
+            @if (navDressesLoading()) {
+              <p class="admin-nav-loading">Loading dresses…</p>
+            } @else if (navDresses().length === 0) {
+              <p class="admin-nav-loading">No dresses in this collection yet.</p>
+            } @else {
+              <div class="admin-nav-dress-list" (scroll)="onNavListScroll($event)">
+                @for (d of visibleNavDresses; track d.id) {
+                  <div class="admin-nav-dress-row" [class.inactive]="!d.isActive">
+                    @if (d.heroImageUrl) {
+                      <img class="admin-nav-thumb" [src]="d.heroImageUrl" [alt]="d.name" />
+                    } @else {
+                      <div class="admin-nav-thumb admin-nav-thumb--empty"></div>
+                    }
+                    <span class="admin-nav-dress-name">{{ d.name }}</span>
+                    @if (d.navOrder) { <span class="admin-nav-badge">★ #{{ d.navOrder }}</span> }
+                    <div class="admin-nav-actions">
+                      @for (slot of [1, 2, 3]; track slot) {
+                        <button class="admin-nav-pin-btn" [class.active]="d.navOrder === slot"
+                                (click)="setNavOrder(d.id, d.navOrder === slot ? null : slot)">{{ slot }}</button>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (hasMoreNavDresses) {
+                  <div class="admin-nav-more">
+                    <span class="admin-list-more-dot"></span>
+                    <span class="admin-list-more-dot"></span>
+                    <span class="admin-list-more-dot"></span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+        </div>
+      }
+
+      @else {
+        <div class="admin-empty">
+          <p>Select a collection from the list or<br>
+             <button class="admin-empty-link" (click)="startCreateCollection()">create a new one</button>
+          </p>
+        </div>
+      }
+
+    }
+
+    <!-- ══ SILHOUETTES TAB ══════════════════════════════════════════ -->
+    @if (tab() === 'silhouettes') {
+      <div class="admin-silhouettes-panel">
+
+        <div class="admin-silhouettes-header">
+          <h2 class="admin-section-title">Silhouettes</h2>
+          <p class="admin-section-hint">Drag to reorder · Click the pencil icon to rename · Cannot delete if used by a dress.</p>
+        </div>
+
+        @if (silhouetteDeleteErr()) {
+          <div class="admin-error-banner">
+            {{ silhouetteDeleteErr() }}
+            <button class="admin-error-close" (click)="silhouetteDeleteErr.set(null)">✕</button>
+          </div>
+        }
+        @if (silhouetteRenameError()) {
+          <div class="admin-error-banner">
+            {{ silhouetteRenameError() }}
+            <button class="admin-error-close" (click)="silhouetteRenameError.set(null)">✕</button>
+          </div>
+        }
+
+        <div class="admin-silhouette-add">
+          <input class="admin-input"
+                 [value]="silhouetteNewName()"
+                 (input)="silhouetteNewName.set($any($event.target).value)"
+                 placeholder="New silhouette name…"
+                 (keydown.enter)="addSilhouette()" />
+          <button class="admin-add-btn"
+                  [disabled]="silhouetteSaving() || !silhouetteNewName().trim()"
+                  (click)="addSilhouette()">
+            {{ silhouetteSaving() ? 'Adding…' : '+ Add' }}
+          </button>
+        </div>
+
+        @if (silhouetteError()) {
+          <p class="admin-field-error">{{ silhouetteError() }}</p>
+        }
+
+        @if (silhouettesLoading()) {
+          <p class="admin-loading">Loading…</p>
+        } @else {
+          <div class="admin-silhouette-list">
+            @for (s of silhouettes(); track s.id; let i = $index) {
+              <div class="admin-silhouette-row"
+                   [class.dragging]="dragSilhouetteIdx() === i"
+                   [class.drag-over]="dragOverSilhouetteIdx() === i"
+                   [attr.draggable]="silhouetteEditingId() !== s.id ? 'true' : 'false'"
+                   (dragstart)="onSilhouetteDragStart($event, i)"
+                   (dragover)="onSilhouetteDragOver($event, i)"
+                   (dragleave)="onSilhouetteDragLeave($event)"
+                   (drop)="onSilhouetteDrop($event, i)"
+                   (dragend)="onSilhouetteDragEnd()">
+
+                <span class="admin-silhouette-handle" title="Drag to reorder">
+                  <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+                    <circle cx="3" cy="2"  r="1.2"/><circle cx="7" cy="2"  r="1.2"/>
+                    <circle cx="3" cy="7"  r="1.2"/><circle cx="7" cy="7"  r="1.2"/>
+                    <circle cx="3" cy="12" r="1.2"/><circle cx="7" cy="12" r="1.2"/>
+                  </svg>
+                </span>
+
+                @if (silhouetteEditingId() === s.id) {
+                  <input class="admin-silhouette-edit-input"
+                         [value]="silhouetteEditName()"
+                         (input)="silhouetteEditName.set($any($event.target).value)"
+                         (keydown.enter)="saveRenameSilhouette()"
+                         (keydown.escape)="cancelEditSilhouette()" />
+                  <button class="admin-silhouette-action-btn admin-silhouette-action-btn--save"
+                          [disabled]="silhouetteRenaming()"
+                          (click)="saveRenameSilhouette()" title="Save">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </button>
+                  <button class="admin-silhouette-action-btn" (click)="cancelEditSilhouette()" title="Cancel">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                } @else {
+                  <span class="admin-silhouette-name">{{ s.name }}</span>
+                  <span class="admin-silhouette-id">#{{ s.id }}</span>
+                  <button class="admin-silhouette-action-btn" title="Rename" (click)="startEditSilhouette(s)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                  <button class="admin-silhouette-del" title="Delete" (click)="deleteSilhouette(s.id)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+                    </svg>
+                  </button>
+                }
+              </div>
+            }
+            @if (silhouettes().length === 0) {
+              <p class="admin-empty-text">No silhouettes yet.</p>
+            }
+          </div>
+        }
+
       </div>
     }
 
-    @if (detailLoading()) {
-      <div class="admin-empty"><p>Loading…</p></div>
-    }
+    <!-- ══ SETTINGS TAB ══════════════════════════════════════════════ -->
+    @if (tab() === 'settings') {
+      <div class="admin-settings-panel">
+        <h2 class="admin-section-title" style="margin-bottom:24px">Site Settings</h2>
 
-    @if (selected(); as dress) {
-      <div class="admin-detail">
+        <!-- Hero Video -->
+        <div class="admin-card" style="margin-bottom:24px">
+          <h3 class="admin-form-section-title" style="margin-bottom:16px">Hero Video</h3>
+          <p class="admin-desc-text" style="margin-bottom:20px;color:var(--gold-mid,#b8975a)">
+            Desktop version plays on screens wider than 768 px. Mobile version plays on phones.<br>
+            If Mobile URL is left empty, the Desktop video is used on all devices.
+          </p>
 
-        <!-- Header -->
-        <div class="admin-detail-header">
-          <div>
-            <h1 class="admin-dress-title">{{ dress.name }}</h1>
-            <p class="admin-dress-tagline">{{ dress.tagline }}</p>
+          <div class="admin-form-row" style="flex-direction:column;gap:20px">
+            <!-- Desktop -->
+            <div class="admin-field">
+              <label class="admin-field-label">Desktop Hero Video URL</label>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input class="admin-input" [(ngModel)]="settingsForm.heroVideoDesktop"
+                       placeholder="https://…/hero-desktop.mp4" style="flex:1" />
+                <label class="admin-btn-secondary" style="cursor:pointer;white-space:nowrap">
+                  Upload
+                  <input type="file" accept="video/*" style="display:none"
+                         (change)="uploadSettingsVideo($event, 'desktop')" />
+                </label>
+              </div>
+              @if (settingsForm.heroVideoDesktop) {
+                <video [src]="settingsForm.heroVideoDesktop" controls muted
+                       style="margin-top:10px;max-width:100%;max-height:180px;border-radius:6px"></video>
+              }
+            </div>
+
+            <!-- Mobile -->
+            <div class="admin-field">
+              <label class="admin-field-label">Mobile Hero Video URL (optional)</label>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input class="admin-input" [(ngModel)]="settingsForm.heroVideoMobile"
+                       placeholder="https://…/hero-mobile.mp4" style="flex:1" />
+                <label class="admin-btn-secondary" style="cursor:pointer;white-space:nowrap">
+                  Upload
+                  <input type="file" accept="video/*" style="display:none"
+                         (change)="uploadSettingsVideo($event, 'mobile')" />
+                </label>
+              </div>
+              @if (settingsForm.heroVideoMobile) {
+                <video [src]="settingsForm.heroVideoMobile" controls muted
+                       style="margin-top:10px;max-width:100%;max-height:180px;border-radius:6px"></video>
+              }
+            </div>
           </div>
-          <div class="admin-header-actions">
-            <button class="admin-toggle-btn"
-                    [class.active]="dress.isActive"
-                    (click)="toggleActive(dress.id, dress.isActive)">
-              {{ dress.isActive ? 'Hide from site' : 'Show on site' }}
+
+          @if (settingsVideoUploading()) {
+            <p class="admin-desc-text" style="margin-top:12px">Uploading…</p>
+          }
+          @if (settingsError()) {
+            <p class="admin-error-text" style="margin-top:12px">{{ settingsError() }}</p>
+          }
+
+          <div class="admin-form-footer" style="margin-top:20px">
+            <button class="admin-btn-primary" [disabled]="settingsSaving()" (click)="saveSettings()">
+              {{ settingsSaving() ? 'Saving…' : 'Save Settings' }}
             </button>
           </div>
         </div>
 
-        <!-- Upload zone -->
-        <div class="admin-section">
-          <h2 class="admin-section-title">Add Photos</h2>
-
-          <div class="admin-upload-controls">
-            <label class="admin-type-label">Photo type:</label>
-            <div class="admin-type-pills">
-              @for (t of photoTypes; track t.value) {
-                <button class="admin-type-pill"
-                        [class.active]="newPhotoType() === t.value"
-                        (click)="newPhotoType.set(t.value)">
-                  {{ t.label }}
-                </button>
-              }
-            </div>
-          </div>
-
-          <div class="admin-dropzone"
-               [class.drag-over]="dragOver()"
-               [class.uploading]="uploading()"
-               (dragover)="onDragOver($event)"
-               (dragleave)="onDragLeave()"
-               (drop)="onDrop($event)">
-            @if (uploading()) {
-              <div class="admin-upload-spinner">Uploading…</div>
-            } @else {
-              <label class="admin-dropzone-label" for="file-input">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                  <polyline points="17 8 12 3 7 8"/>
-                  <line x1="12" y1="3" x2="12" y2="15"/>
-                </svg>
-                <span>Drop images here or <u>click to browse</u></span>
-                <span class="admin-dropzone-hint">JPEG, PNG, WebP — up to 30 MB each, multiple files supported</span>
-              </label>
-              <input id="file-input" type="file" accept="image/*" multiple hidden (change)="onFileInput($event)" />
-            }
-          </div>
-
-          @if (uploadError()) {
-            <p class="admin-upload-error">{{ uploadError() }}</p>
-          }
-        </div>
-
-        <!-- Photo grid -->
-        <div class="admin-section">
-          <h2 class="admin-section-title">
-            Photos
-            <span class="admin-photo-count">{{ dress.photos.length }}</span>
-          </h2>
-
-          @if (dress.photos.length === 0) {
-            <p class="admin-no-photos">No photos yet. Upload some above.</p>
-          } @else {
-            <div class="admin-photo-grid">
-              @for (photo of dress.photos; track photo.id) {
-                <div class="admin-photo-card">
-                  <img [src]="photo.url" [alt]="photo.altText ?? dress.name" />
-                  <div class="admin-photo-overlay">
-                    <span class="admin-photo-type">{{ photoTypeLabel(photo.type) }}</span>
-                    <button class="admin-photo-delete" (click)="deletePhoto(photo.id)" title="Delete photo">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6"/>
-                        <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-                        <path d="M10 11v6M14 11v6"/>
-                        <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              }
-            </div>
-          }
-        </div>
-
       </div>
     }
+
   </main>
 
 </div>

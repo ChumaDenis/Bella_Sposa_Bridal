@@ -1,0 +1,28 @@
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace BellaSposaBridal.Infrastructure.Migrations
+{
+    /// <inheritdoc />
+    public partial class AddCoverImageUrlMobileToCollection : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AddColumn<string>(
+                name: "CoverImageUrlMobile",
+                table: "Collections",
+                type: "text",
+                nullable: true);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropColumn(
+                name: "CoverImageUrlMobile",
+                table: "Collections");
+        }
+    }
+}

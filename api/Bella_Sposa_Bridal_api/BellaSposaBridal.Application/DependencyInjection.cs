@@ -12,6 +12,9 @@ public static class DependencyInjection
         services.AddScoped<ICollectionService, CollectionService>();
         services.AddScoped<IAtlierInfoService, AtlierInfoService>();
         services.AddScoped<IAppointmentService, AppointmentService>();
+        services.AddScoped<IAppointmentTypeService, AppointmentTypeService>();
+        services.AddScoped<IScheduleService, ScheduleService>();
+        services.AddScoped<ISilhouetteTypeService, SilhouetteTypeService>();
         return services;
     }
 }

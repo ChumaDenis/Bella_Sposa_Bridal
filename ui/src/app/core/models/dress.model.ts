@@ -3,12 +3,41 @@ import { CollectionDto } from './collection.model';
 export interface DressListDto {
   id: string;
   name: string;
+  slug: string;
   tagline: string;
   silhouette: number;
+  silhouetteName: string;
   color: string;
   heroImageUrl: string | null;
   isActive: boolean;
+  isDeleted: boolean;
+  deletedAt: string | null;
+  isHomepageFeatured: boolean;
+  homepageFeaturedOrder: number;
   collectionNames: string[];
+  sizes: string[];
+  createdAt: string;
+}
+
+export interface NavDressItem {
+  id: string;
+  name: string;
+  slug: string;
+  heroImageUrl: string | null;
+  navOrder: number | null;
+  isActive: boolean;
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface DressFilterMeta {
+  silhouettes: number[];
   sizes: string[];
 }
 
@@ -35,15 +64,17 @@ export interface DressVideo {
   id: string;
   url: string;
   thumbnailUrl: string | null;
-  type: string;
+  type: number;
 }
 
 export interface DressDetailDto {
   id: string;
   name: string;
+  slug: string;
   tagline: string;
   description: string;
   silhouette: number;
+  silhouetteName: string;
   material: string;
   corsetType: string;
   trainDescription: string | null;
@@ -53,7 +84,12 @@ export interface DressDetailDto {
   decoration: string | null;
   customTailoringAvailable: boolean;
   isActive: boolean;
+  isHomepageFeatured: boolean;
+  homepageFeaturedOrder: number;
+  createdAt: string;
+  updatedAt: string;
   collectionNames: string[];
+  collectionIds: string[];
   photos: DressPhoto[];
   videos: DressVideo[];
   sizes: string[];

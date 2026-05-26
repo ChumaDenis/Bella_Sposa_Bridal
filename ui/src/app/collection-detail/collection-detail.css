@@ -193,6 +193,42 @@
   100% { background-position: -200% 0; }
 }
 
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+.cd-dress-skeleton {
+  aspect-ratio: 2/3;
+  background: #F0E6D3;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* ─── SCROLL LOADER ──────────────────────────── */
+.scroll-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 4rem 0 2rem;
+}
+
+.scroll-loader-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #B8975A;
+  animation: scroll-dot-pulse 1.4s ease-in-out infinite both;
+}
+
+.scroll-loader-dot:nth-child(2) { animation-delay: 0.18s; }
+.scroll-loader-dot:nth-child(3) { animation-delay: 0.36s; }
+
+@keyframes scroll-dot-pulse {
+  0%, 80%, 100% { transform: scale(0.65); opacity: 0.3; }
+  40%           { transform: scale(1);    opacity: 1; }
+}
+
 /* ─── RESPONSIVE ─────────────────────────────── */
 @media (max-width: 900px) {
   .cd-grid {

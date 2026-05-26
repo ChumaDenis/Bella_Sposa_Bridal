@@ -1,0 +1,58 @@
+<div class="login-page">
+  <div class="login-card">
+
+    <div class="login-brand">
+      <div class="login-logo-mark"></div>
+      <h1 class="login-title">Bella Sposa Bridal</h1>
+      <p class="login-subtitle">Admin Panel</p>
+    </div>
+
+    <div class="login-form">
+
+      <div class="login-field">
+        <label class="login-label" for="username">Username</label>
+        <input
+          id="username"
+          class="login-input"
+          type="text"
+          [(ngModel)]="username"
+          placeholder="Enter username"
+          autocomplete="username"
+          (keydown)="onKeydown($event)"
+        />
+      </div>
+
+      <div class="login-field">
+        <label class="login-label" for="password">Password</label>
+        <input
+          id="password"
+          class="login-input"
+          type="password"
+          [(ngModel)]="password"
+          placeholder="Enter password"
+          autocomplete="current-password"
+          (keydown)="onKeydown($event)"
+        />
+      </div>
+
+      @if (error()) {
+        <p class="login-error">{{ error() }}</p>
+      }
+
+      <button
+        class="login-btn"
+        [class.loading]="loading()"
+        [disabled]="loading()"
+        (click)="submit()"
+      >
+        @if (loading()) {
+          <span class="login-spinner"></span>
+        } @else {
+          Sign In
+        }
+      </button>
+
+    </div>
+
+  </div>
+</div>

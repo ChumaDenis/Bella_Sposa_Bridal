@@ -1,6 +1,6 @@
 import {
-  Component, ChangeDetectionStrategy, OnInit, inject,
-  signal, computed, AfterViewInit
+  Component, ChangeDetectionStrategy, OnInit, OnDestroy, inject,
+  signal, ChangeDetectorRef, AfterViewInit
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
@@ -9,7 +9,7 @@ import { FooterComponent } from '../shared/footer/footer';
 import { DressCardComponent } from './components/dress-card/dress-card';
 import { DressService } from '../core/services/dress.service';
 import { CollectionService } from '../core/services/collection.service';
-import { DressListDto, SILHOUETTE_LABELS } from '../core/models/dress.model';
+import { DressListDto, DressFilterMeta, SILHOUETTE_LABELS } from '../core/models/dress.model';
 import { CollectionDto } from '../core/models/collection.model';
 
 const ukNum = (s: string) => parseInt(s.replace(/\D/g, ''), 10) || 0;
@@ -22,98 +22,138 @@ const ukNum = (s: string) => parseInt(s.replace(/\D/g, ''), 10) || 0;
   styleUrl: './catalog.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CatalogComponent implements OnInit, AfterViewInit {
-  private dressService = inject(DressService);
-  private collectionService = inject(CollectionService);
+export class CatalogComponent implements OnInit, OnDestroy, AfterViewInit {
+  private dressService   = inject(DressService);
+  private collectionSvc  = inject(CollectionService);
+  private cdr            = inject(ChangeDetectorRef);
 
-  dresses = signal<DressListDto[]>([]);
-  collections = signal<CollectionDto[]>([]);
+  dresses          = signal<DressListDto[]>([]);
+  filterMeta       = signal<DressFilterMeta | null>(null);
+  collections      = signal<CollectionDto[]>([]);
+  totalCount       = signal(0);
+  hasMore          = signal(false);
+  loadingMore      = signal(false);
+
   activeCollection = signal<string | null>(null);
   activeSilhouette = signal<number | null>(null);
-  activeSize = signal<string | null>(null);
-  loading = signal(true);
+  activeSize       = signal<string | null>(null);
+  currentPage      = signal(1);
+  loading          = signal(true);
+  readonly pageSize = 12;
 
   readonly silhouetteLabels = SILHOUETTE_LABELS;
 
-  private observer!: IntersectionObserver;
+  private revealObserver!: IntersectionObserver;
 
-  filteredDresses = computed(() => {
-    let result = this.dresses();
-    const col = this.activeCollection();
-    const sil = this.activeSilhouette();
-    const size = this.activeSize();
-    if (col) {
-      result = result.filter(d => d.collectionNames.some(
-        cn => this.collections().find(c => c.id === col)?.name === cn
-      ));
-    }
-    if (sil !== null) {
-      result = result.filter(d => d.silhouette === sil);
-    }
-    if (size !== null) {
-      result = result.filter(d => d.sizes.includes(size));
-    }
-    return result;
-  });
+  get silhouettes()    { return this.filterMeta()?.silhouettes ?? []; }
+  get availableSizes() { return [...(this.filterMeta()?.sizes ?? [])].sort((a, b) => ukNum(a) - ukNum(b)); }
 
-  silhouettes = computed(() => {
-    const all = this.dresses().map(d => d.silhouette);
-    return [...new Set(all)];
-  });
-
-  availableSizes = computed(() => {
-    const all = this.dresses().flatMap(d => d.sizes);
-    const unique = [...new Set(all)];
-    return unique.sort((a, b) => ukNum(a) - ukNum(b));
-  });
+  private readonly onScroll = () => {
+    if (document.documentElement.scrollHeight - window.scrollY - window.innerHeight < 400
+        && this.hasMore() && !this.loadingMore()) {
+      this.loadMore();
+    }
+  };
 
   ngOnInit() {
     forkJoin({
-      dresses: this.dressService.getAll(),
-      collections: this.collectionService.getAll()
+      meta: this.dressService.getMeta(),
+      collections: this.collectionSvc.getAll()
     }).subscribe({
-      next: ({ dresses, collections }) => {
-        this.dresses.set(dresses);
+      next: ({ meta, collections }) => {
+        this.filterMeta.set(meta);
         this.collections.set(collections);
-        this.loading.set(false);
-        setTimeout(() => this.initReveal(), 100);
+        this.fetchDresses();
       },
-      error: () => {
-        this.loading.set(false);
-      }
+      error: () => { this.loading.set(false); this.cdr.markForCheck(); }
     });
+    window.addEventListener('scroll', this.onScroll, { passive: true });
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('scroll', this.onScroll);
+    this.revealObserver?.disconnect();
   }
 
   ngAfterViewInit() {
-    // Reveal for static elements already in DOM
     setTimeout(() => this.initReveal(), 200);
   }
 
+  private fetchDresses() {
+    this.loading.set(true);
+    this.currentPage.set(1);
+    this.dresses.set([]);
+    this.dressService.getAll({
+      page: 1, pageSize: this.pageSize,
+      collectionId: this.activeCollection() ?? undefined,
+      silhouette: this.activeSilhouette() ?? undefined,
+      size: this.activeSize() ?? undefined
+    }).subscribe({
+      next: result => {
+        this.dresses.set(result.items);
+        this.totalCount.set(result.totalCount);
+        this.hasMore.set(1 < result.totalPages);
+        this.loading.set(false);
+        this.cdr.markForCheck();
+        setTimeout(() => this.initReveal(), 100);
+      },
+      error: () => { this.loading.set(false); this.cdr.markForCheck(); }
+    });
+  }
+
+  private loadMore() {
+    const nextPage = this.currentPage() + 1;
+    this.loadingMore.set(true);
+    this.dressService.getAll({
+      page: nextPage, pageSize: this.pageSize,
+      collectionId: this.activeCollection() ?? undefined,
+      silhouette: this.activeSilhouette() ?? undefined,
+      size: this.activeSize() ?? undefined
+    }).subscribe({
+      next: result => {
+        this.dresses.update(d => [...d, ...result.items]);
+        this.currentPage.set(nextPage);
+        this.hasMore.set(nextPage < result.totalPages);
+        this.loadingMore.set(false);
+        this.cdr.markForCheck();
+        setTimeout(() => this.initReveal(), 100);
+      },
+      error: () => { this.loadingMore.set(false); this.cdr.markForCheck(); }
+    });
+  }
+
   initReveal() {
-    if (this.observer) this.observer.disconnect();
-    this.observer = new IntersectionObserver((entries) => {
+    if (this.revealObserver) this.revealObserver.disconnect();
+    this.revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('visible');
-          this.observer.unobserve(entry.target);
+          this.revealObserver.unobserve(entry.target);
         }
       });
     }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-    document.querySelectorAll('.reveal').forEach(el => this.observer.observe(el));
+    document.querySelectorAll('.reveal').forEach(el => this.revealObserver.observe(el));
   }
 
   selectCollection(id: string | null) {
     this.activeCollection.set(id);
-    setTimeout(() => this.initReveal(), 50);
+    this.fetchDresses();
   }
 
   selectSilhouette(sil: number | null) {
     this.activeSilhouette.set(sil);
-    setTimeout(() => this.initReveal(), 50);
+    this.fetchDresses();
   }
 
   selectSize(size: string | null) {
     this.activeSize.set(size);
-    setTimeout(() => this.initReveal(), 50);
+    this.fetchDresses();
+  }
+
+  clearFilters() {
+    this.activeCollection.set(null);
+    this.activeSilhouette.set(null);
+    this.activeSize.set(null);
+    this.fetchDresses();
   }
 }

@@ -10,22 +10,29 @@ namespace BellaSposaBridal.Application.Services;
 public class AppointmentService : IAppointmentService
 {
     private readonly IAppointmentRepository _appointmentRepository;
+    private readonly IAppointmentTypeRepository _typeRepo;
 
-    public AppointmentService(IAppointmentRepository appointmentRepository)
+    public AppointmentService(
+        IAppointmentRepository appointmentRepository,
+        IAppointmentTypeRepository typeRepo)
     {
         _appointmentRepository = appointmentRepository;
+        _typeRepo = typeRepo;
     }
 
     public async Task<IEnumerable<AppointmentDto>> GetAllAsync()
     {
         var appointments = await _appointmentRepository.GetAllAsync();
-        return appointments.Select(MapToDto);
+        var types = (await _typeRepo.GetAllAsync()).ToDictionary(t => t.Id, t => t.Name);
+        return appointments.Select(a => MapToDto(a, types));
     }
 
     public async Task<AppointmentDto?> GetByIdAsync(Guid id)
     {
         var appointment = await _appointmentRepository.GetByIdAsync(id);
-        return appointment is null ? null : MapToDto(appointment);
+        if (appointment is null) return null;
+        var types = (await _typeRepo.GetAllAsync()).ToDictionary(t => t.Id, t => t.Name);
+        return MapToDto(appointment, types);
     }
 
     public async Task<List<string>> GetBookedSlotsAsync(DateOnly date)
@@ -63,7 +70,8 @@ public class AppointmentService : IAppointmentService
 
         var created = await _appointmentRepository.AddAsync(appointment);
         var full = await _appointmentRepository.GetByIdAsync(created.Id);
-        return MapToDto(full!);
+        var types = (await _typeRepo.GetAllAsync()).ToDictionary(t => t.Id, t => t.Name);
+        return MapToDto(full!, types);
     }
 
     public async Task UpdateStatusAsync(Guid id, UpdateAppointmentStatusDto dto)
@@ -76,12 +84,55 @@ public class AppointmentService : IAppointmentService
         await _appointmentRepository.UpdateAsync(appointment);
     }
 
+    public async Task RescheduleAsync(Guid id, RescheduleAppointmentDto dto)
+    {
+        var appointment = await _appointmentRepository.GetByIdAsync(id);
+        if (appointment is null) return;
+        await _appointmentRepository.RescheduleAsync(id, dto.AppointmentDateTime);
+    }
+
     public async Task DeleteAsync(Guid id)
     {
         await _appointmentRepository.DeleteAsync(id);
     }
 
-    private static AppointmentDto MapToDto(Appointment appointment) => new()
+    public async Task UpdateAdminNotesAsync(Guid id, UpdateAdminNotesDto dto)
+    {
+        await _appointmentRepository.UpdateAdminNotesAsync(id, dto.AdminNotes);
+    }
+
+    public async Task<AppointmentFileDto> AddFileAsync(Guid appointmentId, string fileName, string url, long size, string contentType)
+    {
+        var file = new Domain.Entities.AppointmentFile
+        {
+            Id = Guid.NewGuid(),
+            AppointmentId = appointmentId,
+            FileName = fileName,
+            Url = url,
+            Size = size,
+            ContentType = contentType,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        var saved = await _appointmentRepository.AddFileAsync(file);
+        return MapFileToDto(saved);
+    }
+
+    public async Task<string?> GetFileUrlAsync(Guid appointmentId, Guid fileId)
+    {
+        var file = await _appointmentRepository.GetFileAsync(fileId);
+        if (file is null || file.AppointmentId != appointmentId) return null;
+        return file.Url;
+    }
+
+    public async Task DeleteFileAsync(Guid appointmentId, Guid fileId)
+    {
+        var file = await _appointmentRepository.GetFileAsync(fileId);
+        if (file is null || file.AppointmentId != appointmentId) return;
+        await _appointmentRepository.DeleteFileAsync(fileId);
+    }
+
+    private static AppointmentDto MapToDto(Appointment appointment, Dictionary<int, string> typeNames) => new()
     {
         Id = appointment.Id,
         FirstName = appointment.FirstName,
@@ -89,14 +140,30 @@ public class AppointmentService : IAppointmentService
         Phone = appointment.Phone,
         Email = appointment.Email,
         AppointmentDateTime = appointment.AppointmentDateTime,
-        Type = appointment.Type.ToString(),
+        TypeId = appointment.Type,
+        Type = typeNames.TryGetValue(appointment.Type, out var n) ? n : $"Type {appointment.Type}",
         Status = appointment.Status.ToString(),
         Notes = appointment.Notes,
+        AdminNotes = appointment.AdminNotes,
         CreatedAt = appointment.CreatedAt,
         ViewedDresses = appointment.ViewedDresses
             .OrderBy(vd => vd.Order)
             .Select(vd => vd.Dress is not null ? MapDressToListDto(vd.Dress) : null)
+            .ToList(),
+        Files = appointment.Files
+            .OrderBy(f => f.CreatedAt)
+            .Select(MapFileToDto)
             .ToList()
+    };
+
+    private static AppointmentFileDto MapFileToDto(Domain.Entities.AppointmentFile f) => new()
+    {
+        Id = f.Id,
+        FileName = f.FileName,
+        Url = f.Url,
+        Size = f.Size,
+        ContentType = f.ContentType,
+        UploadedAt = f.CreatedAt
     };
 
     private static DressListDto MapDressToListDto(Dress dress) => new()
@@ -104,7 +171,8 @@ public class AppointmentService : IAppointmentService
         Id = dress.Id,
         Name = dress.Name,
         Tagline = dress.Tagline,
-        Silhouette = dress.Silhouette,
+        Silhouette = dress.SilhouetteId,
+        SilhouetteName = dress.SilhouetteType?.Name ?? string.Empty,
         Color = dress.Color,
         HeroImageUrl = GetHeroImageUrl(dress),
         CollectionNames = dress.Collections

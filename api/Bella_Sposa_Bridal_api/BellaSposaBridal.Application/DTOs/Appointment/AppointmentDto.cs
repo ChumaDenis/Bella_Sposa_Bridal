@@ -10,9 +10,12 @@ public class AppointmentDto
     public string Phone { get; set; } = string.Empty;
     public string? Email { get; set; }
     public DateTime AppointmentDateTime { get; set; }
+    public int TypeId { get; set; }
     public string Type { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public string? Notes { get; set; }
+    public string? AdminNotes { get; set; }
     public IEnumerable<DressListDto?> ViewedDresses { get; set; } = new List<DressListDto?>();
+    public IEnumerable<AppointmentFileDto> Files { get; set; } = new List<AppointmentFileDto>();
     public DateTime CreatedAt { get; set; }
 }

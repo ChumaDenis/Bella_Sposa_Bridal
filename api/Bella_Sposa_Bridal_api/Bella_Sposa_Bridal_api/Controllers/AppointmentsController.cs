@@ -9,10 +9,12 @@ namespace Bella_Sposa_Bridal_api.Controllers;
 public class AppointmentsController : ControllerBase
 {
     private readonly IAppointmentService _appointmentService;
+    private readonly IStorageService _storageService;
 
-    public AppointmentsController(IAppointmentService appointmentService)
+    public AppointmentsController(IAppointmentService appointmentService, IStorageService storageService)
     {
         _appointmentService = appointmentService;
+        _storageService = storageService;
     }
 
     [HttpGet]
@@ -58,10 +60,48 @@ public class AppointmentsController : ControllerBase
         return NoContent();
     }
 
+    [HttpPatch("{id:guid}/reschedule")]
+    public async Task<IActionResult> Reschedule(Guid id, [FromBody] RescheduleAppointmentDto dto)
+    {
+        await _appointmentService.RescheduleAsync(id, dto);
+        return NoContent();
+    }
+
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         await _appointmentService.DeleteAsync(id);
+        return NoContent();
+    }
+
+    [HttpPatch("{id:guid}/admin-notes")]
+    public async Task<IActionResult> UpdateAdminNotes(Guid id, [FromBody] UpdateAdminNotesDto dto)
+    {
+        await _appointmentService.UpdateAdminNotesAsync(id, dto);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/files")]
+    [RequestSizeLimit(150_000_000)]
+    public async Task<ActionResult<AppointmentFileDto>> UploadFile(Guid id, IFormFile file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { message = "No file provided" });
+
+        await using var stream = file.OpenReadStream();
+        var url = await _storageService.UploadAsync(stream, file.FileName, file.ContentType, "appointment-files");
+        var dto = await _appointmentService.AddFileAsync(id, file.FileName, url, file.Length, file.ContentType);
+        return Ok(dto);
+    }
+
+    [HttpDelete("{id:guid}/files/{fileId:guid}")]
+    public async Task<IActionResult> DeleteFile(Guid id, Guid fileId)
+    {
+        var url = await _appointmentService.GetFileUrlAsync(id, fileId);
+        if (url is null) return NotFound();
+
+        await _storageService.DeleteAsync(url);
+        await _appointmentService.DeleteFileAsync(id, fileId);
         return NoContent();
     }
 }

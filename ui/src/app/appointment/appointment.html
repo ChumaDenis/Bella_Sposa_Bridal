@@ -59,7 +59,7 @@
 
             <div class="form-field">
               <label>Preferred Date <span class="required">*</span></label>
-              <input formControlName="appointmentDate" type="date" />
+              <input formControlName="appointmentDate" type="date" [min]="minDate" [max]="maxDate" />
               @if (form.get('appointmentDate')?.invalid && form.get('appointmentDate')?.touched) {
                 <span class="field-error">Required</span>
               }
@@ -119,25 +119,16 @@
             <div class="form-field">
               <label>Appointment Type <span class="required">*</span></label>
               <div class="type-select">
-                <label class="type-option" [class.selected]="form.get('type')?.value === 0">
-                  <input type="radio" formControlName="type" [value]="0" />
-                  <span class="type-option-name">First Fitting</span>
-                  <span class="type-option-detail">Free · 1 h + 30 min complimentary</span>
-                </label>
-                <label class="type-option" [class.selected]="form.get('type')?.value === 1">
-                  <input type="radio" formControlName="type" [value]="1" />
-                  <span class="type-option-name">Second Fitting</span>
-                  <span class="type-option-detail">Free · 1 h + 30 min complimentary</span>
-                </label>
-                <label class="type-option vip" [class.selected]="form.get('type')?.value === 2">
-                  <input type="radio" formControlName="type" [value]="2" />
-                  <span class="type-option-name">VIP Experience</span>
-                  @if (atlier()?.vipPrice) {
-                    <span class="type-option-detail vip-price">£{{ atlier()!.vipPrice }} · 1 h + 30 min complimentary</span>
-                  } @else {
-                    <span class="type-option-detail vip-price">1 h + 30 min complimentary</span>
-                  }
-                </label>
+                @for (t of appointmentTypes(); track t.id) {
+                  <label class="type-option" [class.selected]="form.get('type')?.value === t.id" [class.vip]="t.price != null">
+                    <input type="radio" formControlName="type" [value]="t.id" />
+                    <span class="type-option-name">{{ t.name }}</span>
+                    <span class="type-option-detail" [class.vip-price]="t.price != null">{{ t.detail ?? (t.price != null ? '£' + t.price : 'Complimentary') }}</span>
+                    @if (t.description) {
+                      <span class="type-option-desc">{{ t.description }}</span>
+                    }
+                  </label>
+                }
               </div>
             </div>
 
@@ -181,7 +172,7 @@
                   <li><span>&#128337;</span> {{ a.workingHours }}</li>
                 }
                 <li><span>&#9201;</span> {{ a.fittingDurationMinutes }}-minute fitting</li>
-                <li><span>&#128101;</span> {{ a.maxGuests === 1 ? 'Private — 1 guest only' : 'Up to ' + a.maxGuests + ' guests welcome' }}</li>
+
                 @if (a.whatsApp) {
                   <li><span>&#128172;</span> WhatsApp: {{ a.whatsApp }}</li>
                 }
@@ -212,7 +203,7 @@
               }
               <div class="viewed-list">
                 @for (d of shownDresses(); track d.id) {
-                  <a class="viewed-item" [routerLink]="['/catalog', d.id]">
+                  <a class="viewed-item" [routerLink]="['/catalog', d.slug]">
                     @if (d.heroImageUrl) {
                       <img [src]="d.heroImageUrl" [alt]="d.name" />
                     } @else {
@@ -220,7 +211,7 @@
                     }
                     <div class="viewed-info">
                       <p class="viewed-name">{{ d.name }}</p>
-                      <p class="viewed-silhouette">{{ d.collectionNames[0] ?? '' }}</p>
+                      <p class="viewed-silhouette">{{ d.collectionNames.at(0) ?? '' }}</p>
                     </div>
                     <svg class="viewed-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                       <line x1="5" y1="12" x2="19" y2="12"/>

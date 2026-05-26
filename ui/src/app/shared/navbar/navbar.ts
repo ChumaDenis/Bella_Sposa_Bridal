@@ -31,7 +31,7 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   isHomePage           = signal(true);
 
   collections          = signal<CollectionDto[]>([]);
-  collectionDresses    = signal<Record<string, DressListDto[]>>({});
+  collectionDresses    = signal<Record<string, DressListDto[] | undefined>>({});
   expandedCollectionId = signal<string | null>(null);
 
   private megaMenuTimer: ReturnType<typeof setTimeout> | null = null;
@@ -48,15 +48,15 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
         this.updateNavbar();
       });
 
-    this.collectionService.getAll().subscribe(cols => {
+    this.collectionService.getFeatured().subscribe(cols => {
       this.collections.set(cols);
       if (cols.length > 0) this.expandedCollectionId.set(cols[0].id);
 
       if (cols.length > 0) {
         const ids = cols.map(c => c.id);
-        forkJoin(ids.map(id => this.dressService.getByCollection(id))).subscribe(arrays => {
+        forkJoin(ids.map(id => this.dressService.getByCollection(id, 1, 3))).subscribe(results => {
           const map: Record<string, DressListDto[]> = {};
-          ids.forEach((id, i) => { map[id] = arrays[i]; });
+          ids.forEach((id, i) => { map[id] = results[i].items; });
           this.collectionDresses.set(map);
         });
       }
@@ -118,10 +118,10 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     this.router.navigate(['/catalog']);
   }
 
-  goToCollection(id: string) {
+  goToCollection(slug: string) {
     this.closeMegaMenuNow();
     this.closeMenu();
-    this.router.navigate(['/collections', id]);
+    this.router.navigate(['/collections', slug]);
   }
 
   goToCollections() {
@@ -130,9 +130,9 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     this.router.navigate(['/collections']);
   }
 
-  goToDress(id: string) {
+  goToDress(slug: string) {
     this.closeMegaMenuNow();
-    this.router.navigate(['/catalog', id]);
+    this.router.navigate(['/catalog', slug]);
   }
 
   goToAppointment() {

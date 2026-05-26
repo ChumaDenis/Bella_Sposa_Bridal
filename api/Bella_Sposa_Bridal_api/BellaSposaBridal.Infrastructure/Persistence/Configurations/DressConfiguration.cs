@@ -33,7 +33,14 @@ public class DressConfiguration : IEntityTypeConfiguration<Dress>
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(d => d.Silhouette)
-            .IsRequired();
+        builder.Property(d => d.SilhouetteId)
+            .IsRequired()
+            .HasColumnName("Silhouette");
+
+        builder.HasOne(d => d.SilhouetteType)
+            .WithMany(s => s.Dresses)
+            .HasForeignKey(d => d.SilhouetteId)
+            .HasPrincipalKey(s => s.Id)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

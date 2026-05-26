@@ -25,6 +25,9 @@ public static class DependencyInjection
         services.AddScoped<ICollectionRepository, CollectionRepository>();
         services.AddScoped<IAtlierInfoRepository, AtlierInfoRepository>();
         services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+        services.AddScoped<IAppointmentTypeRepository, AppointmentTypeRepository>();
+        services.AddScoped<IScheduleRepository, ScheduleRepository>();
+        services.AddScoped<ISilhouetteTypeRepository, SilhouetteTypeRepository>();
         services.AddSingleton<IStorageService, CloudflareR2StorageService>();
 
         return services;

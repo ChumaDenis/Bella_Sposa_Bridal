@@ -28,10 +28,10 @@ public class CloudflareR2StorageService : IStorageService, IDisposable
         _client = new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey), config);
     }
 
-    public async Task<string> UploadAsync(Stream stream, string fileName, string contentType)
+    public async Task<string> UploadAsync(Stream stream, string fileName, string contentType, string folder = "dress-photos")
     {
         var ext = Path.GetExtension(fileName).ToLowerInvariant();
-        var key = $"dress-photos/{Guid.NewGuid()}{ext}";
+        var key = $"{folder}/{Guid.NewGuid()}{ext}";
 
         await _client.PutObjectAsync(new PutObjectRequest
         {

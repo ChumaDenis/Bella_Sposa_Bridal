@@ -1,13 +1,12 @@
-using BellaSposaBridal.Domain.Enums;
-
 namespace BellaSposaBridal.Application.DTOs.Dress;
 
 public class CreateDressDto
 {
     public string Name { get; set; } = string.Empty;
+    public string? Slug { get; set; }
     public string Tagline { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public Silhouette Silhouette { get; set; }
+    public int Silhouette { get; set; }
     public string Material { get; set; } = string.Empty;
     public string CorsetType { get; set; } = string.Empty;
     public string? TrainDescription { get; set; }

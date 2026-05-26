@@ -1,4 +1,6 @@
+using BellaSposaBridal.Application.DTOs;
 using BellaSposaBridal.Application.DTOs.Dress;
+using BellaSposaBridal.Application.Helpers;
 using BellaSposaBridal.Application.Interfaces.Repositories;
 using BellaSposaBridal.Application.Interfaces.Services;
 using BellaSposaBridal.Domain.Common;
@@ -22,9 +24,9 @@ public class DressService : IDressService
         return dresses.Select(MapToListDto);
     }
 
-    public async Task<IEnumerable<DressListDto>> GetAllAsync()
+    public async Task<IEnumerable<DressListDto>> GetAllAsync(bool includeDeleted = false)
     {
-        var dresses = await _dressRepository.GetAllAsync();
+        var dresses = await _dressRepository.GetAllAsync(includeDeleted);
         return dresses.Select(MapToListDto);
     }
 
@@ -34,21 +36,52 @@ public class DressService : IDressService
         return dresses.Select(MapToListDto);
     }
 
+    public async Task<DressDetailDto?> GetBySlugAsync(string slug)
+    {
+        var dress = await _dressRepository.GetBySlugAsync(slug);
+        if (dress is null) return null;
+        return await BuildDetailDtoWithSuggestions(dress);
+    }
+
     public async Task<DressDetailDto?> GetByIdAsync(Guid id)
     {
         var dress = await _dressRepository.GetByIdAsync(id);
-        return dress is null ? null : MapToDetailDto(dress);
+        if (dress is null) return null;
+        return await BuildDetailDtoWithSuggestions(dress);
+    }
+
+    private async Task<DressDetailDto> BuildDetailDtoWithSuggestions(Dress dress)
+    {
+        const int count = 4;
+        var related = dress.RelatedDresses.Select(rd => rd.Related).ToList();
+
+        if (related.Count < count)
+        {
+            var collectionIds = dress.Collections.Select(dc => dc.CollectionId).ToList();
+            var excludeIds    = related.Select(r => r.Id).Append(dress.Id).ToList();
+            var suggestions   = await _dressRepository.GetSuggestionsAsync(excludeIds, collectionIds, dress.SilhouetteId, count - related.Count);
+            related.AddRange(suggestions);
+        }
+
+        return MapToDetailDto(dress, related);
     }
 
     public async Task<DressDetailDto> CreateAsync(CreateDressDto dto)
     {
+        var baseSlug = string.IsNullOrWhiteSpace(dto.Slug)
+            ? SlugHelper.Generate(dto.Name)
+            : SlugHelper.Generate(dto.Slug);
+        var existingSlugs = await _dressRepository.GetAllSlugsAsync();
+        var slug = SlugHelper.EnsureUnique(baseSlug, existingSlugs);
+
         var dress = new Dress
         {
             Id = Guid.NewGuid(),
             Name = dto.Name,
+            Slug = slug,
             Tagline = dto.Tagline,
             Description = dto.Description,
-            Silhouette = dto.Silhouette,
+            SilhouetteId = dto.Silhouette,
             Material = dto.Material,
             CorsetType = dto.CorsetType,
             TrainDescription = dto.TrainDescription,
@@ -73,10 +106,20 @@ public class DressService : IDressService
         var dress = await _dressRepository.GetByIdAsync(id);
         if (dress is null) return null;
 
+        if (!string.IsNullOrWhiteSpace(dto.Slug))
+        {
+            var candidate = SlugHelper.Generate(dto.Slug);
+            if (candidate != dress.Slug)
+            {
+                var others = (await _dressRepository.GetAllSlugsAsync()).Where(s => s != dress.Slug);
+                dress.Slug = SlugHelper.EnsureUnique(candidate, others);
+            }
+        }
+
         dress.Name = dto.Name;
         dress.Tagline = dto.Tagline;
         dress.Description = dto.Description;
-        dress.Silhouette = dto.Silhouette;
+        dress.SilhouetteId = dto.Silhouette;
         dress.Material = dto.Material;
         dress.CorsetType = dto.CorsetType;
         dress.TrainDescription = dto.TrainDescription;
@@ -113,6 +156,14 @@ public class DressService : IDressService
         return true;
     }
 
+    public async Task<bool> RestoreAsync(Guid id)
+    {
+        var dress = await _dressRepository.GetByIdAsync(id);
+        if (dress is null) return false;
+        await _dressRepository.RestoreAsync(id);
+        return true;
+    }
+
     public async Task<DressPhotoDto?> AddPhotoAsync(Guid dressId, AddDressPhotoDto dto)
     {
         var dress = await _dressRepository.GetByIdAsync(dressId);
@@ -143,6 +194,95 @@ public class DressService : IDressService
     public async Task<bool> DeletePhotoAsync(Guid dressId, Guid photoId)
         => await _dressRepository.DeletePhotoAsync(dressId, photoId);
 
+    public async Task ReorderPhotosAsync(Guid dressId, IReadOnlyList<Guid> orderedIds)
+        => await _dressRepository.ReorderPhotosAsync(dressId, orderedIds);
+
+    public async Task<DressVideoDto?> AddVideoAsync(Guid dressId, AddDressVideoDto dto)
+    {
+        var dress = await _dressRepository.GetByIdAsync(dressId);
+        if (dress is null) return null;
+
+        var video = new DressVideo
+        {
+            Id           = Guid.NewGuid(),
+            Url          = dto.Url,
+            ThumbnailUrl = dto.ThumbnailUrl,
+            Type         = dto.Type,
+            CreatedAt    = DateTime.UtcNow,
+            UpdatedAt    = DateTime.UtcNow
+        };
+
+        var created = await _dressRepository.AddVideoAsync(dressId, video);
+        return new DressVideoDto { Id = created.Id, Url = created.Url, ThumbnailUrl = created.ThumbnailUrl, Type = created.Type };
+    }
+
+    public async Task<bool> DeleteVideoAsync(Guid dressId, Guid videoId)
+        => await _dressRepository.DeleteVideoAsync(dressId, videoId);
+
+    public async Task<IEnumerable<NavDressItemDto>> GetNavDressesForCollectionAsync(Guid collectionId)
+    {
+        var dcs = await _dressRepository.GetDressCollectionsAsync(collectionId);
+        return dcs
+            .OrderBy(dc => dc.NavOrder ?? int.MaxValue)
+            .ThenBy(dc => dc.Dress.Name)
+            .Select(dc => new NavDressItemDto
+            {
+                Id           = dc.Dress.Id,
+                Name         = dc.Dress.Name,
+                Slug         = dc.Dress.Slug,
+                HeroImageUrl = GetHeroImageUrl(dc.Dress),
+                NavOrder     = dc.NavOrder,
+                IsActive     = dc.Dress.IsActive
+            });
+    }
+
+    public async Task SetNavOrderAsync(Guid collectionId, Guid dressId, int? navOrder)
+        => await _dressRepository.SetNavOrderExclusiveAsync(collectionId, dressId, navOrder);
+
+    public async Task<PagedResult<DressListDto>> GetAllActivePagedAsync(
+        int page, int pageSize, Guid? collectionId, int? silhouette, string? size)
+    {
+        var (items, total) = await _dressRepository.GetAllActivePagedAsync(page, pageSize, collectionId, silhouette, size);
+        return new PagedResult<DressListDto>
+        {
+            Items = items.Select(MapToListDto).ToList(),
+            TotalCount = total,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<PagedResult<DressListDto>> GetByCollectionIdPagedAsync(Guid collectionId, int page, int pageSize)
+    {
+        var (items, total) = await _dressRepository.GetByCollectionIdPagedAsync(collectionId, page, pageSize);
+        return new PagedResult<DressListDto>
+        {
+            Items = items.Select(MapToListDto).ToList(),
+            TotalCount = total,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<DressFilterMeta> GetFilterMetaAsync()
+    {
+        var (silhouettes, sizes) = await _dressRepository.GetFilterMetaAsync();
+        return new DressFilterMeta
+        {
+            Silhouettes = silhouettes.ToList(),
+            Sizes = sizes.ToList()
+        };
+    }
+
+    public async Task<IEnumerable<DressListDto>> GetHomepageFeaturedAsync()
+    {
+        var dresses = await _dressRepository.GetHomepageFeaturedAsync();
+        return dresses.Select(MapToListDto);
+    }
+
+    public async Task SetHomepageFeaturedAsync(Guid id, bool isFeatured, int order)
+        => await _dressRepository.SetHomepageFeaturedAsync(id, isFeatured, order);
+
     private static string? GetHeroImageUrl(Dress dress)
     {
         var hero = dress.Photos.FirstOrDefault(p => p.Type == PhotoType.Hero);
@@ -154,11 +294,18 @@ public class DressService : IDressService
     {
         Id = dress.Id,
         Name = dress.Name,
+        Slug = dress.Slug,
         Tagline = dress.Tagline,
-        Silhouette = dress.Silhouette,
+        Silhouette = dress.SilhouetteId,
+        SilhouetteName = dress.SilhouetteType?.Name ?? string.Empty,
         Color = dress.Color,
         HeroImageUrl = GetHeroImageUrl(dress),
         IsActive = dress.IsActive,
+        IsDeleted = dress.IsDeleted,
+        DeletedAt = dress.DeletedAt,
+        IsHomepageFeatured = dress.IsHomepageFeatured,
+        HomepageFeaturedOrder = dress.HomepageFeaturedOrder,
+        CreatedAt = dress.CreatedAt,
         CollectionNames = dress.Collections
             .Select(dc => dc.Collection?.Name ?? string.Empty)
             .Where(n => !string.IsNullOrEmpty(n))
@@ -166,13 +313,15 @@ public class DressService : IDressService
         Sizes = dress.Sizes.Select(s => s.Size).ToList()
     };
 
-    private static DressDetailDto MapToDetailDto(Dress dress) => new()
+    private static DressDetailDto MapToDetailDto(Dress dress, IEnumerable<Dress>? related = null) => new()
     {
         Id = dress.Id,
         Name = dress.Name,
+        Slug = dress.Slug,
         Tagline = dress.Tagline,
         Description = dress.Description,
-        Silhouette = dress.Silhouette,
+        Silhouette = dress.SilhouetteId,
+        SilhouetteName = dress.SilhouetteType?.Name ?? string.Empty,
         Material = dress.Material,
         CorsetType = dress.CorsetType,
         TrainDescription = dress.TrainDescription,
@@ -182,9 +331,11 @@ public class DressService : IDressService
         Decoration = dress.Decoration,
         CustomTailoringAvailable = dress.CustomTailoringAvailable,
         IsActive = dress.IsActive,
+        IsHomepageFeatured = dress.IsHomepageFeatured,
+        HomepageFeaturedOrder = dress.HomepageFeaturedOrder,
         CreatedAt = dress.CreatedAt,
         UpdatedAt = dress.UpdatedAt,
-        Photos = dress.Photos.Select(p => new DressPhotoDto
+        Photos = dress.Photos.OrderBy(p => p.Order).Select(p => new DressPhotoDto
         {
             Id = p.Id,
             Url = p.Url,
@@ -204,15 +355,24 @@ public class DressService : IDressService
             .Select(dc => dc.Collection?.Name ?? string.Empty)
             .Where(n => !string.IsNullOrEmpty(n))
             .ToList(),
-        RelatedDresses = dress.RelatedDresses.Select(rd => new DressListDto
-        {
-            Id = rd.Related.Id,
-            Name = rd.Related.Name,
-            Tagline = rd.Related.Tagline,
-            Silhouette = rd.Related.Silhouette,
-            Color = rd.Related.Color,
-            HeroImageUrl = GetHeroImageUrl(rd.Related),
-            CollectionNames = new List<string>()
-        }).ToList()
+        CollectionIds = dress.Collections
+            .Select(dc => dc.CollectionId)
+            .ToList(),
+        RelatedDresses = (related ?? dress.RelatedDresses.Select(rd => rd.Related))
+            .Select(r => new DressListDto
+            {
+                Id = r.Id,
+                Name = r.Name,
+                Slug = r.Slug,
+                Tagline = r.Tagline,
+                Silhouette = r.SilhouetteId,
+                SilhouetteName = r.SilhouetteType?.Name ?? string.Empty,
+                Color = r.Color,
+                HeroImageUrl = GetHeroImageUrl(r),
+                CollectionNames = r.Collections
+                    .Select(dc => dc.Collection?.Name ?? string.Empty)
+                    .Where(n => !string.IsNullOrEmpty(n))
+                    .ToList()
+            }).ToList()
     };
 }

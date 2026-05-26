@@ -10,4 +10,8 @@ export class AtlierService {
   getInfo() {
     return this.http.get<AtlierInfoDto>(`${API_BASE}/atlier`);
   }
+
+  upsert(dto: AtlierInfoDto) {
+    return this.http.put<AtlierInfoDto>(`${API_BASE}/atlier`, dto);
+  }
 }

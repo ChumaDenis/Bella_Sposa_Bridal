@@ -28,6 +28,9 @@ namespace BellaSposaBridal.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AdminNotes")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("AppointmentDateTime")
                         .HasColumnType("timestamp with time zone");
 
@@ -67,6 +70,79 @@ namespace BellaSposaBridal.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Appointments");
+                });
+
+            modelBuilder.Entity("BellaSposaBridal.Domain.Entities.AppointmentFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AppointmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.ToTable("AppointmentFiles");
+                });
+
+            modelBuilder.Entity("BellaSposaBridal.Domain.Entities.AppointmentTypeConfig", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Detail")
+                        .HasColumnType("text");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MainDescription")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AppointmentTypeConfigs");
                 });
 
             modelBuilder.Entity("BellaSposaBridal.Domain.Entities.AppointmentViewedDress", b =>
@@ -126,13 +202,19 @@ namespace BellaSposaBridal.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("WhatsApp")
-                        .HasColumnType("text");
-
                     b.Property<decimal?>("VipPrice")
                         .HasColumnType("numeric");
 
+                    b.Property<string>("WhatsApp")
+                        .HasColumnType("text");
+
                     b.Property<string>("WorkingHours")
+                        .HasColumnType("text");
+
+                    b.Property<string>("HeroVideoDesktop")
+                        .HasColumnType("text");
+
+                    b.Property<string>("HeroVideoMobile")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -149,13 +231,28 @@ namespace BellaSposaBridal.Infrastructure.Migrations
                     b.Property<string>("CoverImageUrl")
                         .HasColumnType("text");
 
+                    b.Property<string>("CoverImageUrlMobile")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<int>("FeaturedOrder")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsFeatured")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Name")
@@ -164,6 +261,10 @@ namespace BellaSposaBridal.Infrastructure.Migrations
                         .HasColumnType("character varying(200)");
 
                     b.Property<string>("Season")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -175,6 +276,29 @@ namespace BellaSposaBridal.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Collections");
+                });
+
+            modelBuilder.Entity("BellaSposaBridal.Domain.Entities.DaySchedule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CustomSlots")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsClosed")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Date")
+                        .IsUnique();
+
+                    b.ToTable("DaySchedules");
                 });
 
             modelBuilder.Entity("BellaSposaBridal.Domain.Entities.Dress", b =>
@@ -209,7 +333,19 @@ namespace BellaSposaBridal.Infrastructure.Migrations
                     b.Property<bool>("HasSleeves")
                         .HasColumnType("boolean");
 
+                    b.Property<int>("HomepageFeaturedOrder")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsHomepageFeatured")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Material")
@@ -222,10 +358,15 @@ namespace BellaSposaBridal.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<int>("Silhouette")
-                        .HasColumnType("integer");
+                    b.Property<int>("SilhouetteId")
+                        .HasColumnType("integer")
+                        .HasColumnName("Silhouette");
 
                     b.Property<string>("SleeveDescription")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Tagline")
@@ -241,6 +382,8 @@ namespace BellaSposaBridal.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("SilhouetteId");
+
                     b.ToTable("Dresses");
                 });
 
@@ -251,6 +394,9 @@ namespace BellaSposaBridal.Infrastructure.Migrations
 
                     b.Property<Guid>("CollectionId")
                         .HasColumnType("uuid");
+
+                    b.Property<int?>("NavOrder")
+                        .HasColumnType("integer");
 
                     b.HasKey("DressId", "CollectionId");
 
@@ -362,6 +508,58 @@ namespace BellaSposaBridal.Infrastructure.Migrations
                     b.ToTable("RelatedDresses");
                 });
 
+            modelBuilder.Entity("BellaSposaBridal.Domain.Entities.SilhouetteType", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("DisplayOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SilhouetteTypes");
+                });
+
+            modelBuilder.Entity("BellaSposaBridal.Domain.Entities.TimeSlotConfig", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Time")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TimeSlotConfigs");
+                });
+
+            modelBuilder.Entity("BellaSposaBridal.Domain.Entities.AppointmentFile", b =>
+                {
+                    b.HasOne("BellaSposaBridal.Domain.Entities.Appointment", "Appointment")
+                        .WithMany("Files")
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+                });
+
             modelBuilder.Entity("BellaSposaBridal.Domain.Entities.AppointmentViewedDress", b =>
                 {
                     b.HasOne("BellaSposaBridal.Domain.Entities.Appointment", "Appointment")
@@ -378,6 +576,17 @@ namespace BellaSposaBridal.Infrastructure.Migrations
                     b.Navigation("Appointment");
 
                     b.Navigation("Dress");
+                });
+
+            modelBuilder.Entity("BellaSposaBridal.Domain.Entities.Dress", b =>
+                {
+                    b.HasOne("BellaSposaBridal.Domain.Entities.SilhouetteType", "SilhouetteType")
+                        .WithMany("Dresses")
+                        .HasForeignKey("SilhouetteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SilhouetteType");
                 });
 
             modelBuilder.Entity("BellaSposaBridal.Domain.Entities.DressCollection", b =>
@@ -453,6 +662,8 @@ namespace BellaSposaBridal.Infrastructure.Migrations
 
             modelBuilder.Entity("BellaSposaBridal.Domain.Entities.Appointment", b =>
                 {
+                    b.Navigation("Files");
+
                     b.Navigation("ViewedDresses");
                 });
 
@@ -472,6 +683,11 @@ namespace BellaSposaBridal.Infrastructure.Migrations
                     b.Navigation("Sizes");
 
                     b.Navigation("Videos");
+                });
+
+            modelBuilder.Entity("BellaSposaBridal.Domain.Entities.SilhouetteType", b =>
+                {
+                    b.Navigation("Dresses");
                 });
 #pragma warning restore 612, 618
         }

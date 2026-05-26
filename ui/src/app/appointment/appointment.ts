@@ -1,5 +1,5 @@
 import {
-  Component, ChangeDetectionStrategy, OnInit, inject, signal
+  Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, inject, signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -13,6 +13,7 @@ import { ViewedDressesService } from '../core/services/viewed-dresses.service';
 import { LikedDressesService } from '../core/services/liked-dresses.service';
 import { DressListDto } from '../core/models/dress.model';
 import { AtlierInfoDto } from '../core/models/atlier.model';
+import { AppointmentTypeConfigDto } from '../core/models/appointment.model';
 
 @Component({
   selector: 'app-appointment',
@@ -29,19 +30,27 @@ export class AppointmentComponent implements OnInit {
   private atlierService     = inject(AtlierService);
   private viewedSvc         = inject(ViewedDressesService);
   private likedSvc          = inject(LikedDressesService);
+  private cdr               = inject(ChangeDetectorRef);
 
-  loading      = signal(false);
-  success      = signal(false);
-  error        = signal<string | null>(null);
-  shownDresses = signal<DressListDto[]>([]);
-  usingLiked   = signal(false);
-  atlier       = signal<AtlierInfoDto | null>(null);
-  bookedSlots  = signal<string[]>([]);
-  slotsLoading = signal(false);
+  loading           = signal(false);
+  success           = signal(false);
+  error             = signal<string | null>(null);
+  shownDresses      = signal<DressListDto[]>([]);
+  usingLiked        = signal(false);
+  atlier            = signal<AtlierInfoDto | null>(null);
+  bookedSlots       = signal<string[]>([]);
+  slotsLoading      = signal(false);
+  appointmentTypes  = signal<AppointmentTypeConfigDto[]>([]);
 
   readonly morningSlots   = ['10:00', '12:00'];
   readonly afternoonSlots = ['14:00', '16:00'];
   readonly eveningSlots   = ['18:00'];
+
+  private localDateStr(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+  get minDate(): string { return this.localDateStr(new Date()); }
+  get maxDate(): string { const d = new Date(); d.setMonth(d.getMonth() + 1); return this.localDateStr(d); }
 
   get selectedTime(): string { return this.form.get('appointmentTime')?.value ?? ''; }
 
@@ -61,11 +70,25 @@ export class AppointmentComponent implements OnInit {
     email: [''],
     appointmentDate: ['', Validators.required],
     appointmentTime: ['', Validators.required],
-    type: [0 as number, Validators.required],
+    type: [null as number | null, Validators.required],
     notes: ['']
   });
 
   ngOnInit() {
+    this.appointmentService.getAppointmentTypes().subscribe({
+      next: (types) => {
+        const active = types
+          .filter(t => t.isActive)
+          .sort((a, b) => a.displayOrder - b.displayOrder);
+        this.appointmentTypes.set(active);
+        if (active.length > 0) {
+          this.form.patchValue({ type: active[0].id });
+        }
+        this.cdr.markForCheck();
+      },
+      error: () => {}
+    });
+
     this.atlierService.getInfo().subscribe({
       next: (atlier) => this.atlier.set(atlier),
       error: () => {}
@@ -77,10 +100,10 @@ export class AppointmentComponent implements OnInit {
     this.usingLiked.set(likedIds.length > 0);
 
     if (ids.length > 0) {
-      this.dressService.getAll().subscribe({
-        next: (all) => {
+      this.dressService.getAll({ pageSize: 300 }).subscribe({
+        next: (result) => {
           const matched = ids
-            .map(id => all.find(d => d.id === id))
+            .map(id => result.items.find(d => d.id === id))
             .filter((d): d is DressListDto => !!d);
           this.shownDresses.set(matched);
         },

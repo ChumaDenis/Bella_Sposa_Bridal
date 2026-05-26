@@ -11,8 +11,13 @@
 
   <!-- Hero -->
   <section class="cd-hero">
-    @if (col.coverImageUrl) {
-      <img class="cd-hero-bg" [src]="col.coverImageUrl" [alt]="col.name" />
+    @if (col.coverImageUrl || col.coverImageUrlMobile) {
+      <picture>
+        @if (col.coverImageUrlMobile) {
+          <source [attr.srcset]="col.coverImageUrlMobile" media="(max-width: 767px)" />
+        }
+        <img class="cd-hero-bg" [src]="col.coverImageUrl || col.coverImageUrlMobile" [alt]="col.name" />
+      </picture>
     }
     <div class="cd-hero-overlay"></div>
     <div class="cd-hero-content">
@@ -42,7 +47,13 @@
         <span class="cd-breadcrumb-current">{{ col.name }}</span>
       </div>
 
-      @if (dresses().length === 0) {
+      @if (dressesLoading()) {
+        <div class="cd-grid">
+          @for (i of [1,2,3,4,5,6,7,8,9,10,11,12]; track i) {
+            <div class="cd-dress-skeleton"></div>
+          }
+        </div>
+      } @else if (dresses().length === 0) {
         <div class="cd-empty">
           <p>No gowns available in this collection yet.</p>
           <a class="btn-dark" (click)="goBack()">View All Collections</a>
@@ -53,6 +64,14 @@
             <app-dress-card [dress]="dress" />
           }
         </div>
+
+        @if (loadingMore()) {
+          <div class="scroll-loader">
+            <span class="scroll-loader-dot"></span>
+            <span class="scroll-loader-dot"></span>
+            <span class="scroll-loader-dot"></span>
+          </div>
+        }
       }
 
     </div>

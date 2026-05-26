@@ -20,6 +20,6 @@ export class DressCardComponent {
 
   navigate() {
     this.viewedDressesService.add(this.dress.id);
-    this.router.navigate(['/catalog', this.dress.id]);
+    this.router.navigate(['/catalog', this.dress.slug]);
   }
 }

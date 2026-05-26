@@ -11,7 +11,15 @@ export class CollectionService {
     return this.http.get<CollectionDto[]>(`${API_BASE}/collections`);
   }
 
+  getFeatured() {
+    return this.http.get<CollectionDto[]>(`${API_BASE}/collections/featured`);
+  }
+
   getById(id: string) {
     return this.http.get<CollectionDto>(`${API_BASE}/collections/${id}`);
+  }
+
+  getBySlug(slug: string) {
+    return this.http.get<CollectionDto>(`${API_BASE}/collections/by/${slug}`);
   }
 }

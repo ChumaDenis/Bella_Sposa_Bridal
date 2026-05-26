@@ -14,4 +14,6 @@ public class AtlierInfoDto
     public string? Instagram { get; set; }
     public string? WorkingHours { get; set; }
     public decimal? VipPrice { get; set; }
+    public string? HeroVideoDesktop { get; set; }
+    public string? HeroVideoMobile { get; set; }
 }

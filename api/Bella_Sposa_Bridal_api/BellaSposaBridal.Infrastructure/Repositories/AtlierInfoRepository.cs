@@ -42,6 +42,9 @@ public class AtlierInfoRepository : IAtlierInfoRepository
             existing.Telegram = atlierInfo.Telegram;
             existing.Instagram = atlierInfo.Instagram;
             existing.WorkingHours = atlierInfo.WorkingHours;
+            existing.VipPrice = atlierInfo.VipPrice;
+            existing.HeroVideoDesktop = atlierInfo.HeroVideoDesktop;
+            existing.HeroVideoMobile = atlierInfo.HeroVideoMobile;
             existing.UpdatedAt = atlierInfo.UpdatedAt;
             atlierInfo = existing;
         }

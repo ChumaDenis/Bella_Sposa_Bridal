@@ -10,8 +10,10 @@ public class Appointment : BaseEntity
     public string Phone { get; set; } = string.Empty;
     public string? Email { get; set; }
     public DateTime AppointmentDateTime { get; set; }
-    public AppointmentType Type { get; set; }
+    public int Type { get; set; }
     public AppointmentStatus Status { get; set; }
     public string? Notes { get; set; }
+    public string? AdminNotes { get; set; }
     public ICollection<AppointmentViewedDress> ViewedDresses { get; set; } = new List<AppointmentViewedDress>();
+    public ICollection<AppointmentFile> Files { get; set; } = new List<AppointmentFile>();
 }

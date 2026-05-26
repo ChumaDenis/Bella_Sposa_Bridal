@@ -19,11 +19,16 @@
       </div>
     } @else {
       <div class="cols-grid">
-        @for (col of collections(); track col.id) {
-          <div class="col-card" (click)="goToCollection(col.id)">
+        @for (col of visibleCollections; track col.id) {
+          <div class="col-card" (click)="goToCollection(col.slug)">
             <div class="col-card-image">
-              @if (col.coverImageUrl) {
-                <img [src]="col.coverImageUrl" [alt]="col.name" loading="lazy" />
+              @if (col.coverImageUrl || col.coverImageUrlMobile) {
+                <picture>
+                  @if (col.coverImageUrlMobile) {
+                    <source [attr.srcset]="col.coverImageUrlMobile" media="(max-width: 767px)" />
+                  }
+                  <img [src]="col.coverImageUrl || col.coverImageUrlMobile" [alt]="col.name" loading="lazy" />
+                </picture>
               } @else {
                 <div class="col-card-placeholder"></div>
               }
@@ -46,6 +51,14 @@
           </div>
         }
       </div>
+
+      @if (hasMore) {
+        <div class="scroll-loader">
+          <span class="scroll-loader-dot"></span>
+          <span class="scroll-loader-dot"></span>
+          <span class="scroll-loader-dot"></span>
+        </div>
+      }
     }
 
   </div>

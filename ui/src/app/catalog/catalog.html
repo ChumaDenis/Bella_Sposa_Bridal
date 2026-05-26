@@ -30,7 +30,7 @@
         }
       </div>
 
-      @if (silhouettes().length > 0) {
+      @if (silhouettes.length > 0) {
         <div class="filter-group filter-group--silhouettes">
           <button
             class="filter-pill filter-pill--silhouette"
@@ -38,7 +38,7 @@
             (click)="selectSilhouette(null)">
             All Silhouettes
           </button>
-          @for (sil of silhouettes(); track sil) {
+          @for (sil of silhouettes; track sil) {
             <button
               class="filter-pill filter-pill--silhouette"
               [class.active]="activeSilhouette() === sil"
@@ -49,7 +49,7 @@
         </div>
       }
 
-      @if (availableSizes().length > 0) {
+      @if (availableSizes.length > 0) {
         <div class="filter-group filter-group--sizes">
           <button
             class="filter-pill filter-pill--size"
@@ -57,7 +57,7 @@
             (click)="selectSize(null)">
             All Sizes
           </button>
-          @for (size of availableSizes(); track size) {
+          @for (size of availableSizes; track size) {
             <button
               class="filter-pill filter-pill--size"
               [class.active]="activeSize() === size"
@@ -72,24 +72,36 @@
     <!-- Content -->
     @if (loading()) {
       <div class="loading-grid">
-        @for (i of [1,2,3,4,5,6]; track i) {
+        @for (i of [1,2,3,4,5,6,7,8,9,10,11,12]; track i) {
           <div class="skeleton-card"></div>
         }
       </div>
-    } @else if (filteredDresses().length === 0) {
+    } @else if (dresses().length === 0) {
       <div class="empty-state">
         <p class="empty-title">No gowns found</p>
         <p class="empty-desc">Try adjusting your filters to discover more of our collection.</p>
-        <button class="filter-pill active" (click)="selectCollection(null); selectSilhouette(null); selectSize(null)">
+        <button class="filter-pill active" (click)="clearFilters()">
           Clear Filters
         </button>
       </div>
     } @else {
+      <div class="catalog-count">
+        {{ totalCount() }} gown{{ totalCount() === 1 ? '' : 's' }} found
+      </div>
+
       <div class="dress-grid">
-        @for (dress of filteredDresses(); track dress.id) {
+        @for (dress of dresses(); track dress.id) {
           <app-dress-card [dress]="dress" />
         }
       </div>
+
+      @if (loadingMore()) {
+        <div class="scroll-loader">
+          <span class="scroll-loader-dot"></span>
+          <span class="scroll-loader-dot"></span>
+          <span class="scroll-loader-dot"></span>
+        </div>
+      }
     }
 
   </div>

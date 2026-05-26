@@ -12,8 +12,16 @@ import { DressService } from '../core/services/dress.service';
 import { AtlierService } from '../core/services/atlier.service';
 import { ViewedDressesService } from '../core/services/viewed-dresses.service';
 import { LikedDressesService } from '../core/services/liked-dresses.service';
-import { DressDetailDto, DressPhoto, SILHOUETTE_LABELS } from '../core/models/dress.model';
+import { DressDetailDto, SILHOUETTE_LABELS } from '../core/models/dress.model';
 import { AtlierInfoDto } from '../core/models/atlier.model';
+
+interface MediaItem {
+  kind: 'photo' | 'video';
+  id: string;
+  url: string;
+  alt: string;
+  thumbnailUrl?: string | null;
+}
 
 @Component({
   selector: 'app-dress-detail',
@@ -24,19 +32,19 @@ import { AtlierInfoDto } from '../core/models/atlier.model';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DressDetailComponent implements OnInit, OnDestroy {
-  private route        = inject(ActivatedRoute);
-  private dressService = inject(DressService);
+  private route         = inject(ActivatedRoute);
+  private dressService  = inject(DressService);
   private atlierService = inject(AtlierService);
-  private viewedSvc   = inject(ViewedDressesService);
-  private likedSvc    = inject(LikedDressesService);
-  private router      = inject(Router);
-  private cdr         = inject(ChangeDetectorRef);
+  private viewedSvc     = inject(ViewedDressesService);
+  private likedSvc      = inject(LikedDressesService);
+  private router        = inject(Router);
+  private cdr           = inject(ChangeDetectorRef);
 
   dress            = signal<DressDetailDto | null>(null);
   atlier           = signal<AtlierInfoDto | null>(null);
   loading          = signal(true);
   error            = signal(false);
-  activePhotoIndex = signal(0);
+  activeMediaIndex = signal(0);
   lightboxOpen     = signal(false);
   detailsOpen      = signal(false);
   liked            = signal(false);
@@ -46,8 +54,7 @@ export class DressDetailComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.routeSub = this.route.paramMap.subscribe(params => {
-      const id = params.get('id')!;
-      this.load(id);
+      this.load(params.get('slug')!);
     });
   }
 
@@ -57,17 +64,15 @@ export class DressDetailComponent implements OnInit, OnDestroy {
     document.body.style.overflow = '';
   }
 
-  private load(id: string) {
+  private load(slug: string) {
     this.loading.set(true);
     this.error.set(false);
-    this.activePhotoIndex.set(0);
+    this.activeMediaIndex.set(0);
     this.lightboxOpen.set(false);
     this.detailsOpen.set(false);
-    this.liked.set(this.likedSvc.isLiked(id));
-    this.viewedSvc.add(id);
 
     forkJoin({
-      dress:  this.dressService.getById(id),
+      dress:  this.dressService.getBySlug(slug),
       atlier: this.atlierService.getInfo()
     }).subscribe({
       next: ({ dress, atlier }) => {
@@ -75,6 +80,8 @@ export class DressDetailComponent implements OnInit, OnDestroy {
           dress.sizes = dress.sizes.slice().sort(
             (a, b) => (parseInt(a.replace(/\D/g, ''), 10) || 0) - (parseInt(b.replace(/\D/g, ''), 10) || 0)
           );
+          this.liked.set(this.likedSvc.isLiked(dress.id));
+          this.viewedSvc.add(dress.id);
         }
         this.dress.set(dress);
         this.atlier.set(atlier);
@@ -107,32 +114,41 @@ export class DressDetailComponent implements OnInit, OnDestroy {
   toggleLike() {
     const d = this.dress();
     if (!d) return;
-    const nowLiked = this.likedSvc.toggle(d.id);
-    this.liked.set(nowLiked);
+    this.liked.set(this.likedSvc.toggle(d.id));
   }
 
   silhouetteLabel(n: number): string {
     return SILHOUETTE_LABELS[n] ?? 'Classic';
   }
 
-  // ── Gallery ─────────────────────────────────────────────────────
-  setPhoto(index: number) { this.activePhotoIndex.set(index); }
-
-  get activePhoto(): DressPhoto | null {
+  // ── Unified media (photos first, then videos) ────────────────────
+  get mediaItems(): MediaItem[] {
     const d = this.dress();
-    if (!d || !d.photos.length) return null;
-    return d.photos[this.activePhotoIndex()] ?? null;
+    if (!d) return [];
+    return [
+      ...d.photos.map(p => ({ kind: 'photo' as const, id: p.id, url: p.url, alt: p.altText ?? d.name })),
+      ...d.videos.map(v => ({ kind: 'video' as const, id: v.id, url: v.url, alt: d.name, thumbnailUrl: v.thumbnailUrl }))
+    ];
   }
 
-  // ── Lightbox ─────────────────────────────────────────────────────
+  get activeMedia(): MediaItem | null {
+    return this.mediaItems[this.activeMediaIndex()] ?? null;
+  }
+
+  setMedia(index: number) { this.activeMediaIndex.set(index); }
+
+  // ── Lightbox (photos only) ────────────────────────────────────────
   openLightbox() {
+    if (!this.mediaItems.length) return;
     this.lightboxOpen.set(true);
     document.body.style.overflow = 'hidden';
   }
 
   openLightboxAt(index: number) {
-    this.activePhotoIndex.set(index);
-    this.openLightbox();
+    if (index < 0 || index >= this.mediaItems.length) return;
+    this.activeMediaIndex.set(index);
+    this.lightboxOpen.set(true);
+    document.body.style.overflow = 'hidden';
   }
 
   closeLightbox() {
@@ -141,17 +157,21 @@ export class DressDetailComponent implements OnInit, OnDestroy {
   }
 
   prevPhoto() {
-    const d = this.dress();
-    if (!d?.photos.length) return;
-    const i = this.activePhotoIndex();
-    this.activePhotoIndex.set(i > 0 ? i - 1 : d.photos.length - 1);
+    const len = this.mediaItems.length;
+    if (!len) return;
+    const i = this.activeMediaIndex();
+    this.activeMediaIndex.set(i > 0 ? i - 1 : len - 1);
   }
 
   nextPhoto() {
-    const d = this.dress();
-    if (!d?.photos.length) return;
-    const i = this.activePhotoIndex();
-    this.activePhotoIndex.set(i < d.photos.length - 1 ? i + 1 : 0);
+    const len = this.mediaItems.length;
+    if (!len) return;
+    const i = this.activeMediaIndex();
+    this.activeMediaIndex.set(i < len - 1 ? i + 1 : 0);
+  }
+
+  get lightboxPhotoNumber(): number {
+    return this.activeMediaIndex() + 1;
   }
 
   @HostListener('document:keydown', ['$event'])

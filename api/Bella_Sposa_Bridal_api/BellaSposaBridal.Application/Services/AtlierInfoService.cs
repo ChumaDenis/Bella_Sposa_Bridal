@@ -36,6 +36,8 @@ public class AtlierInfoService : IAtlierInfoService
             Instagram = dto.Instagram,
             WorkingHours = dto.WorkingHours,
             VipPrice = dto.VipPrice,
+            HeroVideoDesktop = dto.HeroVideoDesktop,
+            HeroVideoMobile = dto.HeroVideoMobile,
             UpdatedAt = DateTime.UtcNow
         };
 
@@ -56,6 +58,8 @@ public class AtlierInfoService : IAtlierInfoService
         Telegram = a.Telegram,
         Instagram = a.Instagram,
         WorkingHours = a.WorkingHours,
-        VipPrice = a.VipPrice
+        VipPrice = a.VipPrice,
+        HeroVideoDesktop = a.HeroVideoDesktop,
+        HeroVideoMobile = a.HeroVideoMobile
     };
 }
