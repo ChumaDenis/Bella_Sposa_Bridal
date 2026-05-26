@@ -23,6 +23,7 @@ public class AppDbContext : DbContext
     public DbSet<TimeSlotConfig> TimeSlotConfigs => Set<TimeSlotConfig>();
     public DbSet<DaySchedule> DaySchedules => Set<DaySchedule>();
     public DbSet<SilhouetteType> SilhouetteTypes => Set<SilhouetteType>();
+    public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
