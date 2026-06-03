@@ -14,11 +14,19 @@ public class CloudflareR2StorageService : IStorageService, IDisposable
 
     public CloudflareR2StorageService(IConfiguration configuration)
     {
-        var accountId  = configuration["R2:AccountId"]  ?? throw new InvalidOperationException("R2:AccountId not configured");
-        var accessKey  = configuration["R2:AccessKeyId"] ?? throw new InvalidOperationException("R2:AccessKeyId not configured");
-        var secretKey  = configuration["R2:SecretAccessKey"] ?? throw new InvalidOperationException("R2:SecretAccessKey not configured");
-        _bucket        = configuration["R2:BucketName"] ?? throw new InvalidOperationException("R2:BucketName not configured");
-        _publicUrl     = (configuration["R2:PublicUrl"] ?? throw new InvalidOperationException("R2:PublicUrl not configured")).TrimEnd('/');
+        var accountId  = configuration["R2:AccountId"];
+        var accessKey  = configuration["R2:AccessKeyId"];
+        var secretKey  = configuration["R2:SecretAccessKey"];
+        _bucket        = configuration["R2:BucketName"] ?? "";
+        var publicUrl  = configuration["R2:PublicUrl"];
+
+        if (string.IsNullOrWhiteSpace(accountId))  throw new InvalidOperationException("R2:AccountId is not configured or is empty. Set R2__AccountId in Railway Variables.");
+        if (string.IsNullOrWhiteSpace(accessKey))  throw new InvalidOperationException("R2:AccessKeyId is not configured or is empty. Set R2__AccessKeyId in Railway Variables.");
+        if (string.IsNullOrWhiteSpace(secretKey))  throw new InvalidOperationException("R2:SecretAccessKey is not configured or is empty. Set R2__SecretAccessKey in Railway Variables.");
+        if (string.IsNullOrWhiteSpace(_bucket))    throw new InvalidOperationException("R2:BucketName is not configured or is empty. Set R2__BucketName in Railway Variables.");
+        if (string.IsNullOrWhiteSpace(publicUrl))  throw new InvalidOperationException("R2:PublicUrl is not configured or is empty. Set R2__PublicUrl in Railway Variables.");
+
+        _publicUrl = publicUrl.TrimEnd('/');
 
         var config = new AmazonS3Config
         {
