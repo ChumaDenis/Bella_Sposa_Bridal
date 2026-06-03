@@ -18,7 +18,7 @@ public class CloudflareR2StorageService : IStorageService, IDisposable
         var accessKey  = configuration["R2:AccessKeyId"] ?? throw new InvalidOperationException("R2:AccessKeyId not configured");
         var secretKey  = configuration["R2:SecretAccessKey"] ?? throw new InvalidOperationException("R2:SecretAccessKey not configured");
         _bucket        = configuration["R2:BucketName"] ?? throw new InvalidOperationException("R2:BucketName not configured");
-        _publicUrl     = configuration["R2:PublicUrl"]!.TrimEnd('/');
+        _publicUrl     = (configuration["R2:PublicUrl"] ?? throw new InvalidOperationException("R2:PublicUrl not configured")).TrimEnd('/');
 
         var config = new AmazonS3Config
         {

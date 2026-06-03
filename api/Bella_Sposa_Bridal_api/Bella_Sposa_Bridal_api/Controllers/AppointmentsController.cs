@@ -9,12 +9,10 @@ namespace Bella_Sposa_Bridal_api.Controllers;
 public class AppointmentsController : ControllerBase
 {
     private readonly IAppointmentService _appointmentService;
-    private readonly IStorageService _storageService;
 
-    public AppointmentsController(IAppointmentService appointmentService, IStorageService storageService)
+    public AppointmentsController(IAppointmentService appointmentService)
     {
         _appointmentService = appointmentService;
-        _storageService = storageService;
     }
 
     [HttpGet]
@@ -83,24 +81,24 @@ public class AppointmentsController : ControllerBase
 
     [HttpPost("{id:guid}/files")]
     [RequestSizeLimit(150_000_000)]
-    public async Task<ActionResult<AppointmentFileDto>> UploadFile(Guid id, IFormFile file)
+    public async Task<ActionResult<AppointmentFileDto>> UploadFile(Guid id, IFormFile file, [FromServices] IStorageService storageService)
     {
         if (file is null || file.Length == 0)
             return BadRequest(new { message = "No file provided" });
 
         await using var stream = file.OpenReadStream();
-        var url = await _storageService.UploadAsync(stream, file.FileName, file.ContentType, "appointment-files");
+        var url = await storageService.UploadAsync(stream, file.FileName, file.ContentType, "appointment-files");
         var dto = await _appointmentService.AddFileAsync(id, file.FileName, url, file.Length, file.ContentType);
         return Ok(dto);
     }
 
     [HttpDelete("{id:guid}/files/{fileId:guid}")]
-    public async Task<IActionResult> DeleteFile(Guid id, Guid fileId)
+    public async Task<IActionResult> DeleteFile(Guid id, Guid fileId, [FromServices] IStorageService storageService)
     {
         var url = await _appointmentService.GetFileUrlAsync(id, fileId);
         if (url is null) return NotFound();
 
-        await _storageService.DeleteAsync(url);
+        await storageService.DeleteAsync(url);
         await _appointmentService.DeleteFileAsync(id, fileId);
         return NoContent();
     }
