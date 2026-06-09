@@ -1,9 +1,10 @@
 import {
-  Component, ChangeDetectionStrategy, OnInit, inject,
+  Component, ChangeDetectionStrategy, OnInit, OnDestroy, inject,
   signal, computed, ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { NavbarComponent } from '../shared/navbar/navbar';
 import { FooterComponent } from '../shared/footer/footer';
 import { DressCardComponent } from '../catalog/components/dress-card/dress-card';
@@ -20,7 +21,7 @@ import { DressListDto } from '../core/models/dress.model';
   styleUrl: './collection-detail.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CollectionDetailComponent implements OnInit {
+export class CollectionDetailComponent implements OnInit, OnDestroy {
   private route         = inject(ActivatedRoute);
   private collectionSvc = inject(CollectionService);
   private dressService  = inject(DressService);
@@ -69,24 +70,40 @@ export class CollectionDetailComponent implements OnInit {
     return this.hasActiveFilter || this.searchQuery().trim() !== '';
   }
 
-  ngOnInit() {
-    const slug = this.route.snapshot.paramMap.get('slug');
-    if (!slug) { this.router.navigate(['/collections']); return; }
+  private routeSub?: Subscription;
 
-    this.collectionSvc.getBySlug(slug).subscribe({
-      next: col => {
-        this.collection.set(col);
-        this.loading.set(false);
-        this.cdr.markForCheck();
-        this.fetchDresses(col.id);
-      },
-      error: () => {
-        this.loading.set(false);
-        this.notFound.set(true);
-        this.cdr.markForCheck();
-      }
+  ngOnInit() {
+    this.routeSub = this.route.paramMap.subscribe(params => {
+      const slug = params.get('slug');
+      if (!slug) { this.router.navigate(['/collections']); return; }
+
+      this.collection.set(null);
+      this.allDresses.set([]);
+      this.silhouetteFilter.set('all');
+      this.colorFilter.set('all');
+      this.searchQuery.set('');
+      this.filtersOpen.set(false);
+      this.loading.set(true);
+      this.notFound.set(false);
+      this.cdr.markForCheck();
+
+      this.collectionSvc.getBySlug(slug).subscribe({
+        next: col => {
+          this.collection.set(col);
+          this.loading.set(false);
+          this.cdr.markForCheck();
+          this.fetchDresses(col.id);
+        },
+        error: () => {
+          this.loading.set(false);
+          this.notFound.set(true);
+          this.cdr.markForCheck();
+        }
+      });
     });
   }
+
+  ngOnDestroy() { this.routeSub?.unsubscribe(); }
 
   private fetchDresses(collectionId: string) {
     this.dressesLoading.set(true);
