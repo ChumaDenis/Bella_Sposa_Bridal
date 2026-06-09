@@ -64,7 +64,7 @@
 
       <!-- Collection section (always expanded, mobile only) -->
       <div class="overlay-collection-block">
-        <span class="overlay-collection-label">Collection</span>
+        <a class="overlay-collection-label" (click)="goToCollections()">Collection</a>
         <div class="overlay-collection-sub">
           @for (col of collections().slice(0, 2); track col.id) {
             <a class="overlay-sub-link" (click)="goToCollection(col.slug)">
