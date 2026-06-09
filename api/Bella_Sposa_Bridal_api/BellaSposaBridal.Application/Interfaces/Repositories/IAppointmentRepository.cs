@@ -11,6 +11,7 @@ public interface IAppointmentRepository
     Task DeleteAsync(Guid id);
     Task<List<string>> GetBookedSlotsAsync(DateOnly date);
     Task<bool> IsSlotTakenAsync(DateTime appointmentDateTime);
+    Task<bool> IsSlotTakenByOtherAsync(Guid excludeId, DateTime appointmentDateTime);
     Task RescheduleAsync(Guid id, DateTime newDateTime);
     Task UpdateAdminNotesAsync(Guid id, string? adminNotes);
     Task<AppointmentFile> AddFileAsync(AppointmentFile file);

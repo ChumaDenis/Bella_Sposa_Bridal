@@ -88,6 +88,15 @@ public class AppointmentService : IAppointmentService
     {
         var appointment = await _appointmentRepository.GetByIdAsync(id);
         if (appointment is null) return;
+
+        var isCallback = dto.AppointmentDateTime.Year >= 2099;
+        if (!isCallback && !dto.Force)
+        {
+            var isTaken = await _appointmentRepository.IsSlotTakenByOtherAsync(id, dto.AppointmentDateTime);
+            if (isTaken)
+                throw new InvalidOperationException("This time slot is already booked by another appointment.");
+        }
+
         await _appointmentRepository.RescheduleAsync(id, dto.AppointmentDateTime);
     }
 

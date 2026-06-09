@@ -61,8 +61,15 @@ public class AppointmentsController : ControllerBase
     [HttpPatch("{id:guid}/reschedule")]
     public async Task<IActionResult> Reschedule(Guid id, [FromBody] RescheduleAppointmentDto dto)
     {
-        await _appointmentService.RescheduleAsync(id, dto);
-        return NoContent();
+        try
+        {
+            await _appointmentService.RescheduleAsync(id, dto);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
     }
 
     [HttpDelete("{id:guid}")]

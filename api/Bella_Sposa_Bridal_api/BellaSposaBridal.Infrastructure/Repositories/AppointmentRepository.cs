@@ -85,6 +85,15 @@ public class AppointmentRepository : IAppointmentRepository
             a.Status != AppointmentStatus.Completed);
     }
 
+    public async Task<bool> IsSlotTakenByOtherAsync(Guid excludeId, DateTime appointmentDateTime)
+    {
+        return await _context.Appointments.AnyAsync(a =>
+            a.Id != excludeId &&
+            a.AppointmentDateTime == appointmentDateTime &&
+            a.Status != AppointmentStatus.Cancelled &&
+            a.Status != AppointmentStatus.Completed);
+    }
+
     public async Task RescheduleAsync(Guid id, DateTime newDateTime)
     {
         var appointment = await _context.Appointments.FindAsync(id);
