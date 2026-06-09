@@ -149,6 +149,7 @@ export class AdminComponent implements OnInit {
   apptStatusFilter   = signal<string>('all');
   apptDateFilter     = signal<string>('');
   apptSearch         = signal<string>('');
+  hideClosedAppts    = signal(true);
 
   apptForm: AdminApptFormData = this.blankApptForm();
 
@@ -213,6 +214,9 @@ export class AdminComponent implements OnInit {
     const sf = this.apptStatusFilter();
     const df = this.apptDateFilter();
     const q  = this.apptSearch().trim().toLowerCase();
+    if (this.hideClosedAppts() && sf === 'all') {
+      list = list.filter(a => a.status !== 'Completed' && a.status !== 'Cancelled');
+    }
     if (sf !== 'all') list = list.filter(a => a.status.toLowerCase() === sf);
     if (df) list = list.filter(a => a.appointmentDateTime.startsWith(df));
     if (q) list = list.filter(a =>
@@ -233,6 +237,25 @@ export class AdminComponent implements OnInit {
   }
   get visibleAppointments() { return this.filteredAppointments.slice(0, this.apptDisplayCount()); }
   get hasMoreAppointments() { return this.filteredAppointments.length > this.apptDisplayCount(); }
+
+  get hiddenClosedCount(): number {
+    if (!this.hideClosedAppts() || this.apptStatusFilter() !== 'all') return 0;
+    return this.appointments().filter(a => a.status === 'Completed' || a.status === 'Cancelled').length;
+  }
+
+  get hasMobileContent(): boolean {
+    const t = this.tab();
+    if (t === 'appointments') return this.apptView() !== 'list';
+    if (t === 'dresses')     return this.dressMode() !== 'idle' || !!this.selectedDress();
+    if (t === 'collections') return this.collectionMode() !== 'idle' || !!this.selectedCollection();
+    return true; // silhouettes, settings
+  }
+
+  get showMobileBack(): boolean {
+    const t = this.tab();
+    if (t === 'silhouettes' || t === 'settings') return false;
+    return this.hasMobileContent;
+  }
 
   // ─── Form data ───────────────────────────────────────────────────
   dressForm: DressFormData           = this.blankDressForm();
@@ -313,6 +336,15 @@ export class AdminComponent implements OnInit {
   logout() {
     this.auth.logout();
     this.router.navigate(['/admin/login']);
+  }
+
+  goBackMobile() {
+    const t = this.tab();
+    if (t === 'appointments') { this.apptView.set('list'); this.selectedAppt.set(null); }
+    else if (t === 'dresses') { this.dressMode.set('idle'); this.selectedDress.set(null); }
+    else if (t === 'collections') { this.collectionMode.set('idle'); this.selectedCollection.set(null); }
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    this.cdr.markForCheck();
   }
 
   // ═══════════════════════════════════════════════════════════════════

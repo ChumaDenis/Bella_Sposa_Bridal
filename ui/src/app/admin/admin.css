@@ -1783,36 +1783,123 @@
   color: inherit;
 }
 
+/* ─── MOBILE BACK BAR (hidden on desktop) ───────────────────── */
+.mob-back-bar { display: none; }
+
+/* ─── FILTER TOGGLE BUTTON ───────────────────────────────────── */
+.admin-filter-toggle-btn {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 0.15rem 0;
+  text-align: left;
+  transition: color 0.2s;
+  letter-spacing: 0.02em;
+}
+.admin-filter-toggle-btn:hover { color: #B8975A; }
+
 /* ─── RESPONSIVE ─────────────────────────────────────────────── */
 @media (max-width: 768px) {
+
+  /* ── LAYOUT: switch to block so we control visibility fully ── */
   .admin-layout {
-    grid-template-columns: 1fr;
+    display: block;
     overflow-x: hidden;
   }
 
+  /* ── LIST MODE: sidebar takes full screen ── */
   .admin-sidebar {
     position: static;
+    width: 100%;
     height: auto;
-    max-height: 45vh;
+    max-height: none;
+    min-height: 100svh;
     overflow-y: auto;
-    min-width: 0;
+    border-right: none;
   }
 
+  /* ── LIST MODE: main is hidden ── */
   .admin-main {
-    padding: 1rem;
-    overflow-x: hidden;
-    min-width: 0;
-    max-width: 100vw;
-    box-sizing: border-box;
+    display: none;
+    padding: 0;
   }
 
+  /* ══ DETAIL MODE ══════════════════════════════════════════════ */
+
+  /* Compact sticky nav bar — show only logo + tabs ── */
+  .admin-layout.mob-detail .admin-sidebar {
+    min-height: 0;
+    height: auto;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    overflow: hidden;
+    border-bottom: 1px solid #1e2535;
+  }
+
+  /* Hide sidebar list content (everything after logo + tabs) */
+  .admin-layout.mob-detail .admin-sidebar > *:nth-child(n+3) {
+    display: none;
+  }
+
+  /* Show main in detail mode */
+  .admin-layout.mob-detail .admin-main {
+    display: block;
+    padding: 0;
+    background: #0f1117;
+    min-height: calc(100svh - 90px);
+  }
+
+  /* ── MOBILE BACK BAR ── */
+  .mob-back-bar {
+    display: flex;
+    align-items: center;
+    padding: 0.65rem 1rem;
+    background: #161b27;
+    border-bottom: 1px solid #1e2535;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .mob-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    color: #B8975A;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    padding: 0.25rem 0;
+    transition: color 0.2s;
+  }
+  .mob-back-btn:hover { color: #a07d48; }
+
+  /* ── INNER CONTENT PADDING (each detail area manages its own padding) ── */
+  .admin-detail,
+  .admin-form-panel {
+    max-width: 100%;
+    padding: 1rem;
+  }
+
+  .admin-silhouettes-panel { padding: 1rem; max-width: 100%; }
+  .admin-settings-panel    { padding: 1rem; }
+
+  /* ── FORMS ── */
   .admin-form-row { grid-template-columns: 1fr; }
 
-  /* Stack detail header vertically so buttons don't overflow */
+  /* ── DETAIL HEADER ── */
   .admin-detail-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
   }
 
   .admin-header-actions {
@@ -1821,56 +1908,71 @@
     width: 100%;
   }
 
-  /* Smaller info cards on narrow screens */
+  .admin-dress-title { font-size: 1.35rem; }
+
+  /* ── INFO GRID ── */
   .admin-info-grid {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  }
-
-  /* Featured slots: 2 cols max (was 3) */
-  .admin-featured-slots--6 {
     grid-template-columns: repeat(2, 1fr);
+    margin-bottom: 1.25rem;
   }
 
-  /* Type rows: stack on mobile */
+  /* ── STATUS BAR ── */
+  .admin-appt-status-bar {
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .admin-status-btn {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.62rem;
+  }
+
+  /* ── FEATURED PANELS ── */
+  .admin-featured-slots { grid-template-columns: 1fr 1fr; }
+  .admin-featured-slots--6 { grid-template-columns: repeat(2, 1fr); }
+  .admin-featured-panel { padding: 1rem; margin-bottom: 1rem; }
+
+  /* ── APPOINTMENT TYPE ROWS ── */
   .admin-type-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
-
   .admin-type-actions {
     width: 100%;
     justify-content: flex-end;
   }
 
-  /* Nav slots: stack vertically */
-  .admin-nav-slots {
-    flex-direction: column;
+  /* ── COLLECTION NAV SLOTS ── */
+  .admin-nav-slots { flex-direction: column; }
+  .admin-nav-slot  { min-width: 0; }
+
+  /* ── SIDEBAR LIST: larger touch targets ── */
+  .admin-appt-item {
+    padding: 0.75rem 1rem;
+    min-height: 60px;
   }
 
-  .admin-nav-slot {
-    min-width: 0;
+  .admin-dress-item {
+    padding: 0.7rem 1rem;
+    min-height: 54px;
   }
 
-  /* Status bar wraps */
-  .admin-appt-status-bar {
-    gap: 4px;
+  /* ── TABS: slightly smaller on narrow screens ── */
+  .admin-tab {
+    padding: 0.45rem 0.75rem 0;
+    font-size: 0.6rem;
   }
 
-  .admin-status-btn {
-    padding: 0.35rem 0.6rem;
-    font-size: 0.62rem;
+  /* ── LOGO BAR: tighter ── */
+  .admin-logo {
+    padding: 0.85rem 1rem 0.75rem;
   }
 
-  /* Form panel full width */
-  .admin-form-panel,
-  .admin-detail {
-    max-width: 100%;
-  }
-
-  /* Reduce detail title size */
-  .admin-dress-title {
-    font-size: 1.4rem;
+  /* ── PHOTO GRID: 2 cols on mobile ── */
+  .admin-photo-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

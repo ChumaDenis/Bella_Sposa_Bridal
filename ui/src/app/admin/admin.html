@@ -1,4 +1,4 @@
-<div class="admin-layout">
+<div class="admin-layout" [class.mob-detail]="hasMobileContent">
 
   <!-- ══ SIDEBAR ══════════════════════════════════════════════════ -->
   <aside class="admin-sidebar">
@@ -75,6 +75,14 @@
             }
           </select>
           <input class="admin-filter-date" type="date" [ngModel]="apptDateFilter()" (ngModelChange)="apptDateFilter.set($event); apptDisplayCount.set(20)" placeholder="Filter by date" />
+          <button class="admin-filter-toggle-btn" (click)="hideClosedAppts.update(v => !v)">
+            @if (hideClosedAppts()) {
+              @if (hiddenClosedCount > 0) { + Показати завершені та скасовані ({{ hiddenClosedCount }}) }
+              @else { + Показати завершені та скасовані }
+            } @else {
+              − Сховати завершені та скасовані
+            }
+          </button>
         </div>
 
         @if (apptLoading()) {
@@ -227,6 +235,18 @@
 
   <!-- ══ MAIN ══════════════════════════════════════════════════════ -->
   <main class="admin-main">
+
+    <!-- Mobile back button (hidden on desktop via CSS) -->
+    @if (showMobileBack) {
+      <div class="mob-back-bar">
+        <button class="mob-back-btn" (click)="goBackMobile()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Назад
+        </button>
+      </div>
+    }
 
     <!-- ─── APPOINTMENTS TAB ───────────────────────────────────────── -->
     @if (tab() === 'appointments') {
