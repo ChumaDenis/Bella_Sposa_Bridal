@@ -229,6 +229,14 @@ textarea {
   color: #8a9aaa;
 }
 
+.type-option-price {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #B8975A;
+  line-height: 1;
+}
+
 .type-option-desc {
   display: block;
   font-size: 0.78rem;
@@ -236,9 +244,20 @@ textarea {
   margin-top: 0.2rem;
 }
 
-.vip-price {
-  color: #B8975A;
+.appt-price-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(184, 151, 90, 0.08);
+  border: 1px solid rgba(184, 151, 90, 0.35);
+  color: #7a6030;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-top: 8px;
 }
+.appt-price-notice svg { flex-shrink: 0; margin-top: 2px; color: #B8975A; }
+.appt-price-notice strong { color: #5c4620; }
 
 /* dot indicator */
 .type-option::before {

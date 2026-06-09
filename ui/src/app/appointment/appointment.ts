@@ -54,6 +54,12 @@ export class AppointmentComponent implements OnInit {
 
   get selectedTime(): string { return this.form.get('appointmentTime')?.value ?? ''; }
 
+  get selectedTypeInfo(): AppointmentTypeConfigDto | null {
+    const id = this.form.get('type')?.value;
+    if (id == null) return null;
+    return this.appointmentTypes().find(t => t.id === id) ?? null;
+  }
+
   selectTime(time: string) {
     if (this.isBooked(time)) return;
     this.form.patchValue({ appointmentTime: time });

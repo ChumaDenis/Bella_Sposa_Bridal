@@ -123,7 +123,11 @@
                   <label class="type-option" [class.selected]="form.get('type')?.value === t.id" [class.vip]="t.price != null">
                     <input type="radio" formControlName="type" [value]="t.id" />
                     <span class="type-option-name">{{ t.name }}</span>
-                    <span class="type-option-detail" [class.vip-price]="t.price != null">{{ t.detail || (t.price != null ? '£' + t.price : 'Complimentary') }}</span>
+                    @if (t.price != null) {
+                      <span class="type-option-price">£{{ t.price }}</span>
+                    } @else {
+                      <span class="type-option-detail">{{ t.detail || 'Complimentary' }}</span>
+                    }
                     @if (t.description) {
                       <span class="type-option-desc">{{ t.description }}</span>
                     }
@@ -136,6 +140,13 @@
               <label>Notes</label>
               <textarea formControlName="notes" rows="3" placeholder="Tell us about your dream gown..."></textarea>
             </div>
+
+            @if (selectedTypeInfo && selectedTypeInfo.price != null) {
+              <div class="appt-price-notice">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                The <strong>{{ selectedTypeInfo.name }}</strong> appointment costs <strong>£{{ selectedTypeInfo.price }}</strong>. Payment is arranged at the atelier.
+              </div>
+            }
 
             @if (error()) {
               <div class="form-error">{{ error() }}</div>
