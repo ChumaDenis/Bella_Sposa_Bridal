@@ -1491,6 +1491,21 @@
 
 .admin-reschedule-time-input { max-width: 140px; }
 
+.admin-reschedule-conflict {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 8px;
+  color: #f87171;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+.admin-reschedule-conflict svg { flex-shrink: 0; margin-top: 1px; }
+
 /* Appointment Types */
 .admin-inline-form {
   background: #1a2030;

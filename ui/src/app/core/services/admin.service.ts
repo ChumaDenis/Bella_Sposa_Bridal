@@ -159,8 +159,8 @@ export class AdminService {
     return this.http.patch(`${API_BASE}/appointments/${id}/status`, { status });
   }
 
-  rescheduleAppointment(id: string, appointmentDateTime: string) {
-    return this.http.patch(`${API_BASE}/appointments/${id}/reschedule`, { appointmentDateTime });
+  rescheduleAppointment(id: string, appointmentDateTime: string, force = false) {
+    return this.http.patch(`${API_BASE}/appointments/${id}/reschedule`, { appointmentDateTime, force });
   }
 
   deleteAppointment(id: string) {

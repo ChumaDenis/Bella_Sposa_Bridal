@@ -123,7 +123,7 @@
                   <label class="type-option" [class.selected]="form.get('type')?.value === t.id" [class.vip]="t.price != null">
                     <input type="radio" formControlName="type" [value]="t.id" />
                     <span class="type-option-name">{{ t.name }}</span>
-                    <span class="type-option-detail" [class.vip-price]="t.price != null">{{ t.detail ?? (t.price != null ? '£' + t.price : 'Complimentary') }}</span>
+                    <span class="type-option-detail" [class.vip-price]="t.price != null">{{ t.detail || (t.price != null ? '£' + t.price : 'Complimentary') }}</span>
                     @if (t.description) {
                       <span class="type-option-desc">{{ t.description }}</span>
                     }

@@ -160,6 +160,7 @@ export class AdminComponent implements OnInit {
   showReschedule        = signal(false);
   rescheduleSlots       = signal<string[]>([]);
   rescheduleSlotsLoading = signal(false);
+  rescheduleConflict    = signal(false);
 
   // Admin notes
   editingAdminNotes = signal(false);
@@ -413,6 +414,7 @@ export class AdminComponent implements OnInit {
     const isCallback = dt.getUTCFullYear() >= 2099;
     const timeStr = isCallback ? '10:00' : dt.toISOString().split('T')[1].substring(0, 5);
     this.rescheduleTime.set(timeStr);
+    this.rescheduleConflict.set(false);
     this.showReschedule.set(true);
     this.onRescheduleDateChange(isCallback ? this.todayStr : dt.toISOString().split('T')[0]);
     this.cdr.markForCheck();
@@ -429,7 +431,7 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  cancelReschedule() { this.showReschedule.set(false); this.rescheduleSlots.set([]); this.cdr.markForCheck(); }
+  cancelReschedule() { this.showReschedule.set(false); this.rescheduleSlots.set([]); this.rescheduleConflict.set(false); this.cdr.markForCheck(); }
 
   // ─── Admin notes ─────────────────────────────────────────────────
   startEditAdminNotes() {
@@ -534,13 +536,14 @@ export class AdminComponent implements OnInit {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
-  saveReschedule() {
+  saveReschedule(force = false) {
     const appt = this.selectedAppt();
     if (!appt) return;
     const dt = `${this.rescheduleDate()}T${this.rescheduleTime()}:00Z`;
     const wasCallbackPending = new Date(appt.appointmentDateTime).getFullYear() >= 2099 && appt.status === 'Pending';
     this.rescheduling.set(true);
-    this.svc.rescheduleAppointment(appt.id, dt).subscribe({
+    this.rescheduleConflict.set(false);
+    this.svc.rescheduleAppointment(appt.id, dt, force).subscribe({
       next: () => {
         this.appointments.update(list => list.map(a => a.id === appt.id ? { ...a, appointmentDateTime: dt } : a));
         this.selectedAppt.update(a => a ? { ...a, appointmentDateTime: dt } : a);
@@ -549,9 +552,15 @@ export class AdminComponent implements OnInit {
         this.showReschedule.set(false);
         this.cdr.markForCheck();
       },
-      error: () => { this.rescheduling.set(false); this.cdr.markForCheck(); }
+      error: (err: HttpErrorResponse) => {
+        this.rescheduling.set(false);
+        if (err.status === 409) this.rescheduleConflict.set(true);
+        this.cdr.markForCheck();
+      }
     });
   }
+
+  forceReschedule() { this.saveReschedule(true); }
 
   // ─── Admin create appointment ─────────────────────────────────────
   startCreateAppt() {
