@@ -60,9 +60,23 @@
         </div>
       } @else {
 
-        <!-- Filters -->
-        @if (availableSilhouettes.length > 1 || availableColors.length > 1) {
-          <div class="cd-filter-bar">
+        <!-- Search + Filter toolbar -->
+        <div class="cd-toolbar">
+          <div class="cd-search-wrap">
+            <svg class="cd-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input class="cd-search" type="text" placeholder="Search by name…"
+                   [value]="searchQuery()"
+                   (input)="setSearch($any($event.target).value)" />
+            @if (searchQuery()) {
+              <button class="cd-search-clear" (click)="setSearch('')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            }
+          </div>
+
+          @if (availableSilhouettes.length > 1 || availableColors.length > 1) {
             <button class="cd-filter-toggle" [class.open]="filtersOpen()" (click)="toggleFilters()">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
@@ -73,31 +87,31 @@
                 <polyline points="6 9 12 15 18 9"/>
               </svg>
             </button>
+          }
+        </div>
 
-            @if (filtersOpen()) {
-              <div class="cd-filters">
-                @if (availableSilhouettes.length > 1) {
-                  <div class="cd-filter-row">
-                    <span class="cd-filter-label">Silhouette</span>
-                    <div class="cd-pills">
-                      <button class="cd-pill" [class.active]="silhouetteFilter() === 'all'" (click)="setSilhouette('all')">All</button>
-                      @for (s of availableSilhouettes; track s) {
-                        <button class="cd-pill" [class.active]="silhouetteFilter() === s" (click)="setSilhouette(s)">{{ s }}</button>
-                      }
-                    </div>
-                  </div>
-                }
-                @if (availableColors.length > 1) {
-                  <div class="cd-filter-row">
-                    <span class="cd-filter-label">Colour</span>
-                    <div class="cd-pills">
-                      <button class="cd-pill" [class.active]="colorFilter() === 'all'" (click)="setColor('all')">All</button>
-                      @for (c of availableColors; track c) {
-                        <button class="cd-pill" [class.active]="colorFilter() === c" (click)="setColor(c)">{{ c }}</button>
-                      }
-                    </div>
-                  </div>
-                }
+        @if (filtersOpen()) {
+          <div class="cd-filters">
+            @if (availableSilhouettes.length > 1) {
+              <div class="cd-filter-row">
+                <span class="cd-filter-label">Silhouette</span>
+                <div class="cd-pills">
+                  <button class="cd-pill" [class.active]="silhouetteFilter() === 'all'" (click)="setSilhouette('all')">All</button>
+                  @for (s of availableSilhouettes; track s) {
+                    <button class="cd-pill" [class.active]="silhouetteFilter() === s" (click)="setSilhouette(s)">{{ s }}</button>
+                  }
+                </div>
+              </div>
+            }
+            @if (availableColors.length > 1) {
+              <div class="cd-filter-row">
+                <span class="cd-filter-label">Colour</span>
+                <div class="cd-pills">
+                  <button class="cd-pill" [class.active]="colorFilter() === 'all'" (click)="setColor('all')">All</button>
+                  @for (c of availableColors; track c) {
+                    <button class="cd-pill" [class.active]="colorFilter() === c" (click)="setColor(c)">{{ c }}</button>
+                  }
+                </div>
               </div>
             }
           </div>
@@ -105,8 +119,8 @@
 
         @if (filteredDresses().length === 0) {
           <div class="cd-empty">
-            <p>No gowns match the selected filters.</p>
-            <button class="btn-dark" (click)="clearFilters()">Clear filters</button>
+            <p>No gowns match your search.</p>
+            <button class="btn-dark" (click)="clearFilters()">Clear all</button>
           </div>
         } @else {
           <div class="cd-grid">

@@ -36,13 +36,16 @@ export class CollectionDetailComponent implements OnInit {
   silhouetteFilter = signal<string>('all');
   colorFilter      = signal<string>('all');
   filtersOpen      = signal(false);
+  searchQuery      = signal<string>('');
 
   filteredDresses = computed(() => {
     let list = this.allDresses();
     const sf = this.silhouetteFilter();
     const cf = this.colorFilter();
+    const q  = this.searchQuery().trim().toLowerCase();
     if (sf !== 'all') list = list.filter(d => d.silhouetteName === sf);
     if (cf !== 'all') list = list.filter(d => d.color === cf);
+    if (q)            list = list.filter(d => d.name.toLowerCase().includes(q));
     return list;
   });
 
@@ -60,6 +63,10 @@ export class CollectionDetailComponent implements OnInit {
 
   get hasActiveFilter(): boolean {
     return this.silhouetteFilter() !== 'all' || this.colorFilter() !== 'all';
+  }
+
+  get hasAnyFilter(): boolean {
+    return this.hasActiveFilter || this.searchQuery().trim() !== '';
   }
 
   ngOnInit() {
@@ -95,7 +102,8 @@ export class CollectionDetailComponent implements OnInit {
 
   setSilhouette(v: string) { this.silhouetteFilter.set(v); this.cdr.markForCheck(); }
   setColor(v: string)      { this.colorFilter.set(v);      this.cdr.markForCheck(); }
-  clearFilters()           { this.silhouetteFilter.set('all'); this.colorFilter.set('all'); this.cdr.markForCheck(); }
+  clearFilters()           { this.silhouetteFilter.set('all'); this.colorFilter.set('all'); this.searchQuery.set(''); this.cdr.markForCheck(); }
+  setSearch(v: string)     { this.searchQuery.set(v);          this.cdr.markForCheck(); }
   toggleFilters()          { this.filtersOpen.update(v => !v); this.cdr.markForCheck(); }
 
   goBack() { this.router.navigate(['/collections']); }
