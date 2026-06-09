@@ -1,6 +1,6 @@
 import {
   Component, ChangeDetectionStrategy, OnInit, OnDestroy, inject,
-  signal, ChangeDetectorRef, AfterViewInit
+  signal, computed, ChangeDetectorRef, AfterViewInit
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
@@ -37,9 +37,21 @@ export class CatalogComponent implements OnInit, OnDestroy, AfterViewInit {
   activeCollection = signal<string | null>(null);
   activeSilhouette = signal<number | null>(null);
   activeSize       = signal<string | null>(null);
+  searchQuery      = signal<string>('');
+  filtersOpen      = signal(false);
   currentPage      = signal(1);
   loading          = signal(true);
   readonly pageSize = 12;
+
+  visibleDresses = computed(() => {
+    const q = this.searchQuery().trim().toLowerCase();
+    if (!q) return this.dresses();
+    return this.dresses().filter(d => d.name.toLowerCase().includes(q));
+  });
+
+  get hasActiveFilter(): boolean {
+    return this.activeCollection() !== null || this.activeSilhouette() !== null || this.activeSize() !== null;
+  }
 
   readonly silhouetteLabels = SILHOUETTE_LABELS;
 
@@ -154,6 +166,10 @@ export class CatalogComponent implements OnInit, OnDestroy, AfterViewInit {
     this.activeCollection.set(null);
     this.activeSilhouette.set(null);
     this.activeSize.set(null);
+    this.searchQuery.set('');
     this.fetchDresses();
   }
+
+  setSearch(v: string)  { this.searchQuery.set(v);          this.cdr.markForCheck(); }
+  toggleFilters()       { this.filtersOpen.update(v => !v); this.cdr.markForCheck(); }
 }

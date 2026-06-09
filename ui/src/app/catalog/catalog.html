@@ -11,63 +11,60 @@
 <section class="catalog-body">
   <div class="container">
 
-    <!-- Filter bar -->
-    <div class="filters">
-      <div class="filter-group">
-        <button
-          class="filter-pill"
-          [class.active]="activeCollection() === null"
-          (click)="selectCollection(null)">
-          All
-        </button>
-        @for (col of collections(); track col.id) {
-          <button
-            class="filter-pill"
-            [class.active]="activeCollection() === col.id"
-            (click)="selectCollection(col.id)">
-            {{ col.name }}
+    <!-- Toolbar -->
+    <div class="cat-toolbar">
+      <div class="cat-search-wrap">
+        <svg class="cat-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="cat-search" type="text" placeholder="Search by name…"
+               [value]="searchQuery()"
+               (input)="setSearch($any($event.target).value)" />
+        @if (searchQuery()) {
+          <button class="cat-search-clear" (click)="setSearch('')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         }
       </div>
 
-      @if (silhouettes.length > 0) {
-        <div class="filter-group filter-group--silhouettes">
-          <button
-            class="filter-pill filter-pill--silhouette"
-            [class.active]="activeSilhouette() === null"
-            (click)="selectSilhouette(null)">
-            All Silhouettes
-          </button>
-          @for (sil of silhouettes; track sil) {
-            <button
-              class="filter-pill filter-pill--silhouette"
-              [class.active]="activeSilhouette() === sil"
-              (click)="selectSilhouette(sil)">
-              {{ silhouetteLabels[sil] }}
-            </button>
-          }
-        </div>
-      }
-
-      @if (availableSizes.length > 0) {
-        <div class="filter-group filter-group--sizes">
-          <button
-            class="filter-pill filter-pill--size"
-            [class.active]="activeSize() === null"
-            (click)="selectSize(null)">
-            All Sizes
-          </button>
-          @for (size of availableSizes; track size) {
-            <button
-              class="filter-pill filter-pill--size"
-              [class.active]="activeSize() === size"
-              (click)="selectSize(size)">
-              {{ size }}
-            </button>
-          }
-        </div>
-      }
+      <button class="cat-filter-toggle" [class.open]="filtersOpen()" (click)="toggleFilters()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+        </svg>
+        Filter
+        @if (hasActiveFilter) { <span class="cat-filter-dot"></span> }
+        <svg class="cat-filter-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
     </div>
+
+    @if (filtersOpen()) {
+      <div class="filters">
+        <div class="filter-group">
+          <button class="filter-pill" [class.active]="activeCollection() === null" (click)="selectCollection(null)">All</button>
+          @for (col of collections(); track col.id) {
+            <button class="filter-pill" [class.active]="activeCollection() === col.id" (click)="selectCollection(col.id)">{{ col.name }}</button>
+          }
+        </div>
+        @if (silhouettes.length > 0) {
+          <div class="filter-group filter-group--silhouettes">
+            <button class="filter-pill filter-pill--silhouette" [class.active]="activeSilhouette() === null" (click)="selectSilhouette(null)">All Silhouettes</button>
+            @for (sil of silhouettes; track sil) {
+              <button class="filter-pill filter-pill--silhouette" [class.active]="activeSilhouette() === sil" (click)="selectSilhouette(sil)">{{ silhouetteLabels[sil] }}</button>
+            }
+          </div>
+        }
+        @if (availableSizes.length > 0) {
+          <div class="filter-group filter-group--sizes">
+            <button class="filter-pill filter-pill--size" [class.active]="activeSize() === null" (click)="selectSize(null)">All Sizes</button>
+            @for (size of availableSizes; track size) {
+              <button class="filter-pill filter-pill--size" [class.active]="activeSize() === size" (click)="selectSize(size)">{{ size }}</button>
+            }
+          </div>
+        }
+      </div>
+    }
 
     <!-- Content -->
     @if (loading()) {
@@ -90,7 +87,7 @@
       </div>
 
       <div class="dress-grid">
-        @for (dress of dresses(); track dress.id) {
+        @for (dress of visibleDresses(); track dress.id) {
           <app-dress-card [dress]="dress" />
         }
       </div>
