@@ -114,6 +114,11 @@
                 </div>
               </div>
             }
+            @if (hasActiveFilter) {
+              <div class="cd-filter-reset-row">
+                <button class="cd-filter-reset-btn" (click)="clearFilters()">Clear all filters</button>
+              </div>
+            }
           </div>
         }
 

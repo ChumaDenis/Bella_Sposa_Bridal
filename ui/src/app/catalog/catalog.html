@@ -63,6 +63,11 @@
             }
           </div>
         }
+        @if (hasActiveFilter) {
+          <div class="filter-reset-row">
+            <button class="filter-reset-btn" (click)="clearFilters()">Clear all filters</button>
+          </div>
+        }
       </div>
     }
 

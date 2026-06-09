@@ -262,6 +262,26 @@
 .cd-pill:hover { border-color: var(--gold); color: var(--gold); }
 .cd-pill.active { border-color: var(--gold); background: var(--gold); color: #fff; }
 
+.cd-filter-reset-row {
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(184,151,90,0.2);
+}
+
+.cd-filter-reset-btn {
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9aaab8;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.cd-filter-reset-btn:hover { color: #1B2C42; }
+
 /* ─── DRESS GRID ─────────────────────────────── */
 .cd-grid {
   display: grid;
