@@ -227,14 +227,14 @@
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #9aaab8;
+  color: #4A6072;
   background: none;
-  border: none;
-  padding: 0;
+  border: 1px solid rgba(27,44,66,0.25);
+  padding: 0.35rem 0.9rem;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: border-color 0.2s, color 0.2s;
 }
-.filter-reset-btn:hover { color: #1B2C42; }
+.filter-reset-btn:hover { border-color: #1B2C42; color: #1B2C42; }
 
 /* ─── DRESS GRID ─────────────────────────────── */
 .dress-grid {
