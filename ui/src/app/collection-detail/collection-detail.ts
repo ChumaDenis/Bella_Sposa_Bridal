@@ -35,6 +35,7 @@ export class CollectionDetailComponent implements OnInit {
 
   silhouetteFilter = signal<string>('all');
   colorFilter      = signal<string>('all');
+  filtersOpen      = signal(false);
 
   filteredDresses = computed(() => {
     let list = this.allDresses();
@@ -95,6 +96,7 @@ export class CollectionDetailComponent implements OnInit {
   setSilhouette(v: string) { this.silhouetteFilter.set(v); this.cdr.markForCheck(); }
   setColor(v: string)      { this.colorFilter.set(v);      this.cdr.markForCheck(); }
   clearFilters()           { this.silhouetteFilter.set('all'); this.colorFilter.set('all'); this.cdr.markForCheck(); }
+  toggleFilters()          { this.filtersOpen.update(v => !v); this.cdr.markForCheck(); }
 
   goBack() { this.router.navigate(['/collections']); }
 }
