@@ -27,7 +27,9 @@
                   @if (col.coverImageUrlMobile) {
                     <source [attr.srcset]="col.coverImageUrlMobile" media="(max-width: 767px)" />
                   }
-                  <img [src]="col.coverImageUrl || col.coverImageUrlMobile" [alt]="col.name" loading="lazy" />
+                  <img [src]="col.coverImageUrl || col.coverImageUrlMobile" [alt]="col.name" loading="lazy"
+                     (load)="$any($event.target).classList.add('img-loaded')"
+                     (error)="$any($event.target).classList.add('img-loaded')" />
                 </picture>
               } @else {
                 <div class="col-card-placeholder"></div>

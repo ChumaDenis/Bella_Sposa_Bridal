@@ -1,7 +1,9 @@
 <article class="dress-card reveal" (click)="navigate()">
   <div class="card-image">
     @if (dress.heroImageUrl) {
-      <img [src]="dress.heroImageUrl" [alt]="dress.name" loading="lazy" />
+      <img [src]="dress.heroImageUrl" [alt]="dress.name" loading="lazy"
+           (load)="$any($event.target).classList.add('img-loaded')"
+           (error)="$any($event.target).classList.add('img-loaded')" />
     } @else {
       <div class="card-image-placeholder"></div>
     }

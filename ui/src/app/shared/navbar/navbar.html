@@ -158,13 +158,17 @@
           <div class="mega-col-photos">
             @for (dress of (collectionDresses()[col.id] ?? []).slice(0, 3); track dress.id) {
               <div class="mega-photo" (click)="goToDress(dress.slug)">
-                <img [src]="dress.heroImageUrl ?? col.coverImageUrl ?? ''" [alt]="dress.name" loading="eager" />
+                <img [src]="dress.heroImageUrl ?? col.coverImageUrl ?? ''" [alt]="dress.name" loading="eager"
+                     (load)="$any($event.target).classList.add('img-loaded')"
+                     (error)="$any($event.target).classList.add('img-loaded')" />
                 <div class="mega-photo-label">{{ dress.name }}</div>
               </div>
             }
             @if ((collectionDresses()[col.id] ?? []).length === 0 && col.coverImageUrl) {
               <div class="mega-photo mega-photo--cover" (click)="goToCollection(col.slug)">
-                <img [src]="col.coverImageUrl" [alt]="col.name" loading="eager" />
+                <img [src]="col.coverImageUrl" [alt]="col.name" loading="eager"
+                     (load)="$any($event.target).classList.add('img-loaded')"
+                     (error)="$any($event.target).classList.add('img-loaded')" />
               </div>
             }
           </div>
