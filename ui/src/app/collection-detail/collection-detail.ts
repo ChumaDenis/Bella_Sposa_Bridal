@@ -1,6 +1,6 @@
 import {
-  Component, ChangeDetectionStrategy, OnInit, OnDestroy, inject,
-  signal, ChangeDetectorRef
+  Component, ChangeDetectionStrategy, OnInit, inject,
+  signal, computed, ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
@@ -20,31 +20,46 @@ import { DressListDto } from '../core/models/dress.model';
   styleUrl: './collection-detail.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CollectionDetailComponent implements OnInit, OnDestroy {
-  private route          = inject(ActivatedRoute);
-  private collectionSvc  = inject(CollectionService);
-  private dressService   = inject(DressService);
-  private router         = inject(Router);
-  private cdr            = inject(ChangeDetectorRef);
+export class CollectionDetailComponent implements OnInit {
+  private route         = inject(ActivatedRoute);
+  private collectionSvc = inject(CollectionService);
+  private dressService  = inject(DressService);
+  private router        = inject(Router);
+  private cdr           = inject(ChangeDetectorRef);
 
   collection     = signal<CollectionDto | null>(null);
-  dresses        = signal<DressListDto[]>([]);
+  allDresses     = signal<DressListDto[]>([]);
   loading        = signal(true);
   dressesLoading = signal(false);
-  loadingMore    = signal(false);
-  hasMore        = signal(false);
   notFound       = signal(false);
-  currentPage    = signal(1);
-  readonly pageSize = 12;
 
-  private collectionId = '';
+  silhouetteFilter = signal<string>('all');
+  colorFilter      = signal<string>('all');
 
-  private readonly onScroll = () => {
-    if (document.documentElement.scrollHeight - window.scrollY - window.innerHeight < 400
-        && this.hasMore() && !this.loadingMore()) {
-      this.loadMore();
-    }
-  };
+  filteredDresses = computed(() => {
+    let list = this.allDresses();
+    const sf = this.silhouetteFilter();
+    const cf = this.colorFilter();
+    if (sf !== 'all') list = list.filter(d => d.silhouetteName === sf);
+    if (cf !== 'all') list = list.filter(d => d.color === cf);
+    return list;
+  });
+
+  get availableSilhouettes(): string[] {
+    const seen = new Set<string>();
+    for (const d of this.allDresses()) { if (d.silhouetteName) seen.add(d.silhouetteName); }
+    return [...seen].sort();
+  }
+
+  get availableColors(): string[] {
+    const seen = new Set<string>();
+    for (const d of this.allDresses()) { if (d.color) seen.add(d.color); }
+    return [...seen].sort();
+  }
+
+  get hasActiveFilter(): boolean {
+    return this.silhouetteFilter() !== 'all' || this.colorFilter() !== 'all';
+  }
 
   ngOnInit() {
     const slug = this.route.snapshot.paramMap.get('slug');
@@ -52,11 +67,10 @@ export class CollectionDetailComponent implements OnInit, OnDestroy {
 
     this.collectionSvc.getBySlug(slug).subscribe({
       next: col => {
-        this.collectionId = col.id;
         this.collection.set(col);
         this.loading.set(false);
         this.cdr.markForCheck();
-        this.fetchDresses();
+        this.fetchDresses(col.id);
       },
       error: () => {
         this.loading.set(false);
@@ -64,22 +78,13 @@ export class CollectionDetailComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }
     });
-
-    window.addEventListener('scroll', this.onScroll, { passive: true });
   }
 
-  ngOnDestroy() {
-    window.removeEventListener('scroll', this.onScroll);
-  }
-
-  private fetchDresses() {
+  private fetchDresses(collectionId: string) {
     this.dressesLoading.set(true);
-    this.currentPage.set(1);
-    this.dresses.set([]);
-    this.dressService.getByCollection(this.collectionId, 1, this.pageSize).subscribe({
+    this.dressService.getByCollection(collectionId, 1, 200).subscribe({
       next: result => {
-        this.dresses.set(result.items);
-        this.hasMore.set(1 < result.totalPages);
+        this.allDresses.set(result.items);
         this.dressesLoading.set(false);
         this.cdr.markForCheck();
       },
@@ -87,22 +92,9 @@ export class CollectionDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  private loadMore() {
-    const nextPage = this.currentPage() + 1;
-    this.loadingMore.set(true);
-    this.dressService.getByCollection(this.collectionId, nextPage, this.pageSize).subscribe({
-      next: result => {
-        this.dresses.update(d => [...d, ...result.items]);
-        this.currentPage.set(nextPage);
-        this.hasMore.set(nextPage < result.totalPages);
-        this.loadingMore.set(false);
-        this.cdr.markForCheck();
-      },
-      error: () => { this.loadingMore.set(false); this.cdr.markForCheck(); }
-    });
-  }
+  setSilhouette(v: string) { this.silhouetteFilter.set(v); this.cdr.markForCheck(); }
+  setColor(v: string)      { this.colorFilter.set(v);      this.cdr.markForCheck(); }
+  clearFilters()           { this.silhouetteFilter.set('all'); this.colorFilter.set('all'); this.cdr.markForCheck(); }
 
-  goBack() {
-    this.router.navigate(['/collections']);
-  }
+  goBack() { this.router.navigate(['/collections']); }
 }

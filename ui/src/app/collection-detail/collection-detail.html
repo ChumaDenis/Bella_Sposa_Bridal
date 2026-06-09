@@ -53,23 +53,51 @@
             <div class="cd-dress-skeleton"></div>
           }
         </div>
-      } @else if (dresses().length === 0) {
+      } @else if (allDresses().length === 0) {
         <div class="cd-empty">
           <p>No gowns available in this collection yet.</p>
           <a class="btn-dark" (click)="goBack()">View All Collections</a>
         </div>
       } @else {
-        <div class="cd-grid">
-          @for (dress of dresses(); track dress.id) {
-            <app-dress-card [dress]="dress" />
-          }
-        </div>
 
-        @if (loadingMore()) {
-          <div class="scroll-loader">
-            <span class="scroll-loader-dot"></span>
-            <span class="scroll-loader-dot"></span>
-            <span class="scroll-loader-dot"></span>
+        <!-- Filters -->
+        @if (availableSilhouettes.length > 1 || availableColors.length > 1) {
+          <div class="cd-filters">
+            @if (availableSilhouettes.length > 1) {
+              <div class="cd-filter-row">
+                <span class="cd-filter-label">Silhouette</span>
+                <div class="cd-pills">
+                  <button class="cd-pill" [class.active]="silhouetteFilter() === 'all'" (click)="setSilhouette('all')">All</button>
+                  @for (s of availableSilhouettes; track s) {
+                    <button class="cd-pill" [class.active]="silhouetteFilter() === s" (click)="setSilhouette(s)">{{ s }}</button>
+                  }
+                </div>
+              </div>
+            }
+            @if (availableColors.length > 1) {
+              <div class="cd-filter-row">
+                <span class="cd-filter-label">Colour</span>
+                <div class="cd-pills">
+                  <button class="cd-pill" [class.active]="colorFilter() === 'all'" (click)="setColor('all')">All</button>
+                  @for (c of availableColors; track c) {
+                    <button class="cd-pill" [class.active]="colorFilter() === c" (click)="setColor(c)">{{ c }}</button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        @if (filteredDresses().length === 0) {
+          <div class="cd-empty">
+            <p>No gowns match the selected filters.</p>
+            <button class="btn-dark" (click)="clearFilters()">Clear filters</button>
+          </div>
+        } @else {
+          <div class="cd-grid">
+            @for (dress of filteredDresses(); track dress.id) {
+              <app-dress-card [dress]="dress" />
+            }
           </div>
         }
       }
