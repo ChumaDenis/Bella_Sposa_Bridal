@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  apiBase: 'https://bellasposabridal-production.up.railway.app/api'
+  apiBase: (window as any).__env?.apiBase
+    || 'https://bellasposabridal-production.up.railway.app/api'
 };

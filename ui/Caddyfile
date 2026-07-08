@@ -3,8 +3,14 @@
 root * /srv
 encode gzip
 
-@static path *.js *.css *.woff2 *.woff *.png *.jpg *.jpeg *.webp *.svg *.ico
+@static {
+	path *.js *.css *.woff2 *.woff *.png *.jpg *.jpeg *.webp *.svg *.ico
+	not path /env.js
+}
 header @static Cache-Control "public, max-age=31536000, immutable"
+
+@env path /env.js
+header @env Cache-Control "no-cache"
 
 try_files {path} /index.html
 file_server
