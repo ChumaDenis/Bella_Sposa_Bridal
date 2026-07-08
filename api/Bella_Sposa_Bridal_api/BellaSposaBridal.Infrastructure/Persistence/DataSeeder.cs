@@ -162,7 +162,7 @@ public static class DataSeeder
             ctx.AtlierInfos.Add(new AtlierInfo
             {
                 Id = Guid.NewGuid(),
-                Address = "127 Queenstown Road, London SW8 3RH",
+                Address = "29 Queenstown Road, London SW8 3RE",
                 FittingDurationMinutes = 90,
                 IsFittingFree = true,
                 MaxGuests = 1,
