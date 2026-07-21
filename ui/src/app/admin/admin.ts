@@ -500,7 +500,7 @@ export class AdminComponent implements OnInit {
         },
         error: (err) => {
           done++;
-          this.fileUploadError.set(err.error?.message ?? 'Upload failed');
+          this.fileUploadError.set(this.httpErrMsg(err, 'Upload failed'));
           this.fileUploading.set(false);
           this.cdr.markForCheck();
         }
@@ -1096,6 +1096,18 @@ export class AdminComponent implements OnInit {
     (e.target as HTMLInputElement).value = '';
   }
 
+  /** Extracts a readable message from API errors, incl. ASP.NET ProblemDetails (title/errors). */
+  private httpErrMsg(err: HttpErrorResponse, fallback = 'Unknown error'): string {
+    const e = err.error;
+    if (typeof e === 'string' && e) return e;
+    if (e?.message) return e.message;
+    if (e?.title) {
+      const details = e.errors ? Object.values(e.errors).flat().join(' ') : '';
+      return details ? `${e.title} ${details}` : e.title;
+    }
+    return err.message || fallback;
+  }
+
   private processFiles(files: File[]) {
     const dress = this.selectedDress();
     if (!dress) return;
@@ -1124,7 +1136,7 @@ export class AdminComponent implements OnInit {
             },
             error: (err: HttpErrorResponse) => {
               failed = true;
-              const msg = err.error?.message ?? err.message ?? 'Unknown error';
+              const msg = this.httpErrMsg(err);
               this.uploadError.set(`Photo saved to storage but DB save failed: ${msg}`);
               this.uploading.set(false);
               this.cdr.markForCheck();
@@ -1133,7 +1145,7 @@ export class AdminComponent implements OnInit {
         },
         error: (err: HttpErrorResponse) => {
           failed = true;
-          const msg = err.error?.message ?? err.message ?? 'Unknown error';
+          const msg = this.httpErrMsg(err);
           this.uploadError.set(`Upload failed: ${msg}`);
           this.uploading.set(false);
           this.cdr.markForCheck();
@@ -1237,7 +1249,7 @@ export class AdminComponent implements OnInit {
               }
             },
             error: (err: HttpErrorResponse) => {
-              const msg = err.error?.message ?? err.message ?? 'Unknown error';
+              const msg = this.httpErrMsg(err);
               this.videoUploadError.set(`Video saved to storage but DB save failed: ${msg}`);
               this.uploadingVideo.set(false);
               this.cdr.markForCheck();
@@ -1245,7 +1257,7 @@ export class AdminComponent implements OnInit {
           });
         },
         error: (err: HttpErrorResponse) => {
-          const msg = err.error?.message ?? err.message ?? 'Unknown error';
+          const msg = this.httpErrMsg(err);
           this.videoUploadError.set(`Upload failed: ${msg}`);
           this.uploadingVideo.set(false);
           this.cdr.markForCheck();

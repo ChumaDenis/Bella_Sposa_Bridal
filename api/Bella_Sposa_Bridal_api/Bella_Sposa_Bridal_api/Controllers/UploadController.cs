@@ -23,9 +23,13 @@ public class UploadController : ControllerBase
         if (file is null || file.Length == 0)
             return BadRequest(new { message = "No file provided" });
 
-        var ct = file.ContentType.ToLowerInvariant();
-        if (!ct.StartsWith("image/"))
-            return BadRequest(new { message = $"Only image files are accepted (got '{file.ContentType}')" });
+        // Browsers send 'application/octet-stream' (or nothing) for extensions the OS
+        // has no MIME mapping for (.heic/.tif on Windows) — fall back to the extension.
+        var ct = (file.ContentType ?? "").ToLowerInvariant();
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        var imageExts = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif", ".heic", ".heif", ".avif", ".tif", ".tiff" };
+        if (!ct.StartsWith("image/") && !imageExts.Contains(ext))
+            return BadRequest(new { message = $"Only image files are accepted (got '{file.ContentType}', '{ext}')" });
 
         var isTiff = ct is "image/tiff" or "image/x-tiff" or "image/tif" or "image/x-tif"
                      || file.FileName.EndsWith(".tif",  StringComparison.OrdinalIgnoreCase)
@@ -44,8 +48,20 @@ public class UploadController : ControllerBase
             return Ok(new { url });
         }
 
+        var storedCt = ct.StartsWith("image/") ? ct : ext switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png"            => "image/png",
+            ".webp"           => "image/webp",
+            ".gif"            => "image/gif",
+            ".heic"           => "image/heic",
+            ".heif"           => "image/heif",
+            ".avif"           => "image/avif",
+            _                 => "application/octet-stream",
+        };
+
         await using var stream = file.OpenReadStream();
-        var resultUrl = await _storage.UploadAsync(stream, file.FileName, file.ContentType);
+        var resultUrl = await _storage.UploadAsync(stream, file.FileName, storedCt);
         return Ok(new { url = resultUrl });
     }
 

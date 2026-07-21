@@ -9,6 +9,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(o =>
     o.Limits.MaxRequestBodySize = 150_000_000); // 150 MB
 
+// Multipart form limit defaults to 128 MiB — below the Kestrel limit above.
+// Lift it so uploads are governed by Kestrel / [RequestSizeLimit] only.
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o =>
+    o.MultipartBodyLengthLimit = long.MaxValue);
+
 // Railway provides DATABASE_URL as postgresql://user:pass@host:port/db
 // Parse it into the Npgsql connection string format
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
