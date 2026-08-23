@@ -14,6 +14,7 @@ import { LikedDressesService } from '../core/services/liked-dresses.service';
 import { DressListDto } from '../core/models/dress.model';
 import { AtlierInfoDto } from '../core/models/atlier.model';
 import { AppointmentTypeConfigDto } from '../core/models/appointment.model';
+import { trackAppointmentBooked } from '../core/analytics';
 
 @Component({
   selector: 'app-appointment',
@@ -176,7 +177,7 @@ export class AppointmentComponent implements OnInit {
       notes: callbackNote,
       viewedDressIds
     }).subscribe({
-      next: () => { this.loading.set(false); this.success.set(true); },
+      next: () => { this.loading.set(false); this.success.set(true); trackAppointmentBooked(); },
       error: () => {
         this.loading.set(false);
         this.error.set('Something went wrong. Please try again or contact us directly.');
@@ -215,6 +216,7 @@ export class AppointmentComponent implements OnInit {
       next: () => {
         this.loading.set(false);
         this.success.set(true);
+        trackAppointmentBooked();
       },
       error: (err) => {
         this.loading.set(false);
