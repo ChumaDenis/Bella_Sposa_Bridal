@@ -1,9 +1,10 @@
 declare global {
   interface Window {
-    gtag?: (...args: unknown[]) => void;
+    dataLayer?: unknown[];
   }
 }
 
 export function trackAppointmentBooked(): void {
-  window.gtag?.('event', 'book_appointment');
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ event: 'book_appointment' });
 }
