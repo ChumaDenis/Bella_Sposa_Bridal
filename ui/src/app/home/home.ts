@@ -11,6 +11,7 @@ import { DressListDto } from '../core/models/dress.model';
 import { AppointmentService } from '../core/services/appointment.service';
 import { AppointmentTypeConfigDto } from '../core/models/appointment.model';
 import { AtlierService } from '../core/services/atlier.service';
+import { AtlierInfoDto } from '../core/models/atlier.model';
 
 @Component({
   selector: 'app-home',
@@ -38,6 +39,7 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
   featuredDresses  = signal<DressListDto[]>([]);
   dressesLoading   = signal(true);
   services         = signal<AppointmentTypeConfigDto[]>([]);
+  atlier           = signal<AtlierInfoDto | null>(null);
 
   private observer!:            IntersectionObserver;
   private aboutVideoObserver!:  IntersectionObserver;
@@ -45,6 +47,7 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     this.atlierService.getInfo().subscribe({
       next: (info) => {
+        this.atlier.set(info);
         const desktop = info.heroVideoDesktop || this.defaultHeroSrc;
         const mobile  = info.heroVideoMobile  || desktop;
         const src = window.innerWidth < 768 ? mobile : desktop;
