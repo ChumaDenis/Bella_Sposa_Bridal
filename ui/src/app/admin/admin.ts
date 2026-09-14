@@ -196,6 +196,18 @@ export class AdminComponent implements OnInit {
   dayHasOverride   = signal(false);
   dayOverrideOriginalRange = signal<{ start: string; end: string } | null>(null);
   dayOverrideStatus = signal<{ type: 'success' | 'error'; message: string } | null>(null);
+  private overrideStatusTimeout?: ReturnType<typeof setTimeout>;
+
+  private setOverrideStatus(status: { type: 'success' | 'error'; message: string } | null, autoDismissMs = 4000) {
+    if (this.overrideStatusTimeout) clearTimeout(this.overrideStatusTimeout);
+    this.dayOverrideStatus.set(status);
+    if (status && autoDismissMs > 0) {
+      this.overrideStatusTimeout = setTimeout(() => {
+        this.dayOverrideStatus.set(null);
+        this.cdr.markForCheck();
+      }, autoDismissMs);
+    }
+  }
 
   upcomingDayOverrides      = signal<DayScheduleDto[]>([]);
   upcomingOverridesLoading  = signal(false);
@@ -754,7 +766,7 @@ export class AdminComponent implements OnInit {
     // Baseline = the real group range being edited, so shrinking either end on
     // save can detect exactly which dates need their override cleared.
     this.dayOverrideOriginalRange.set({ start: startDate, end: endDate });
-    this.dayOverrideStatus.set(null);
+    this.setOverrideStatus(null);
     this.loadDayOverride();
   }
 
@@ -767,7 +779,7 @@ export class AdminComponent implements OnInit {
     // edit session — re-baseline to whatever is currently on the screen so
     // we don't carry over a stale range from a previous edit.
     this.dayOverrideOriginalRange.set({ start: date, end: this.dayOverrideEnd() });
-    this.dayOverrideStatus.set(null);
+    this.setOverrideStatus(null);
     this.loadDayOverride();
   }
 
@@ -792,11 +804,11 @@ export class AdminComponent implements OnInit {
           this.dayEnabledSlots.set(this.timeSlots().map(s => s.time));
           this.dayOverrideOriginalRange.set(null);
         }
-        this.dayOverrideStatus.set({ type: 'success', message: `Removed override for ${label}.` });
+        this.setOverrideStatus({ type: 'success', message: `Removed override for ${label}.` });
         this.cdr.markForCheck();
       },
       error: () => {
-        this.dayOverrideStatus.set({ type: 'error', message: `Failed to remove override for ${label}.` });
+        this.setOverrideStatus({ type: 'error', message: `Failed to remove override for ${label}.` });
         this.cdr.markForCheck();
       }
     });
@@ -857,7 +869,7 @@ export class AdminComponent implements OnInit {
       : [];
 
     this.daySaving.set(true);
-    this.dayOverrideStatus.set(null);
+    this.setOverrideStatus(null);
     const customSlots = this.dayIsClosed() ? null : this.dayEnabledSlots();
     const setOps = newDates.map(d => this.svc.setDaySchedule(d, this.dayIsClosed(), customSlots));
     const clearOps = staleDates.map(d => this.svc.deleteDaySchedule(d));
@@ -869,12 +881,12 @@ export class AdminComponent implements OnInit {
         this.dayOverrideOriginalRange.set({ start, end });
         this.loadUpcomingDayOverrides();
         const label = newDates.length > 1 ? `${start} – ${end} (${newDates.length} days)` : start;
-        this.dayOverrideStatus.set({ type: 'success', message: `Saved override for ${label}.` });
+        this.setOverrideStatus({ type: 'success', message: `Saved override for ${label}.` });
         this.cdr.markForCheck();
       },
       error: () => {
         this.daySaving.set(false);
-        this.dayOverrideStatus.set({ type: 'error', message: 'Failed to save override. Please try again.' });
+        this.setOverrideStatus({ type: 'error', message: 'Failed to save override. Please try again.' });
         this.cdr.markForCheck();
       }
     });
@@ -885,7 +897,7 @@ export class AdminComponent implements OnInit {
     const end = this.dayOverrideEnd() || start;
     if (!start) return;
     const dates = this.datesInRange(start, end < start ? start : end);
-    this.dayOverrideStatus.set(null);
+    this.setOverrideStatus(null);
     forkJoin(dates.map(d => this.svc.deleteDaySchedule(d))).subscribe({
       next: () => {
         this.dayOverride.set(null);
@@ -894,11 +906,11 @@ export class AdminComponent implements OnInit {
         this.dayEnabledSlots.set(this.timeSlots().map(s => s.time));
         this.dayOverrideOriginalRange.set(null);
         this.loadUpcomingDayOverrides();
-        this.dayOverrideStatus.set({ type: 'success', message: 'Override removed.' });
+        this.setOverrideStatus({ type: 'success', message: 'Override removed.' });
         this.cdr.markForCheck();
       },
       error: () => {
-        this.dayOverrideStatus.set({ type: 'error', message: 'Failed to remove override. Please try again.' });
+        this.setOverrideStatus({ type: 'error', message: 'Failed to remove override. Please try again.' });
         this.cdr.markForCheck();
       }
     });
