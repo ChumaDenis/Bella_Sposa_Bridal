@@ -11,13 +11,16 @@ public class AppointmentService : IAppointmentService
 {
     private readonly IAppointmentRepository _appointmentRepository;
     private readonly IAppointmentTypeRepository _typeRepo;
+    private readonly IScheduleRepository _scheduleRepository;
 
     public AppointmentService(
         IAppointmentRepository appointmentRepository,
-        IAppointmentTypeRepository typeRepo)
+        IAppointmentTypeRepository typeRepo,
+        IScheduleRepository scheduleRepository)
     {
         _appointmentRepository = appointmentRepository;
         _typeRepo = typeRepo;
+        _scheduleRepository = scheduleRepository;
     }
 
     public async Task<IEnumerable<AppointmentDto>> GetAllAsync()
@@ -41,8 +44,16 @@ public class AppointmentService : IAppointmentService
     public async Task<AppointmentDto> CreateAsync(CreateAppointmentDto dto)
     {
         var isCallback = dto.AppointmentDateTime.Year >= 2099;
-        if (!isCallback && await _appointmentRepository.IsSlotTakenAsync(dto.AppointmentDateTime))
-            throw new InvalidOperationException("This time slot is already booked.");
+        if (!isCallback)
+        {
+            var date = DateOnly.FromDateTime(dto.AppointmentDateTime);
+            var daySchedule = await _scheduleRepository.GetDayScheduleAsync(date);
+            if (daySchedule?.IsClosed == true)
+                throw new InvalidOperationException("We're closed on this date. Please choose a different day.");
+
+            if (await _appointmentRepository.IsSlotTakenAsync(dto.AppointmentDateTime))
+                throw new InvalidOperationException("This time slot is already booked.");
+        }
 
         var dressIds = dto.ViewedDressIds.Take(5).ToList();
 

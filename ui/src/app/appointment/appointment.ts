@@ -39,13 +39,20 @@ export class AppointmentComponent implements OnInit {
   shownDresses      = signal<DressListDto[]>([]);
   usingLiked        = signal(false);
   atlier            = signal<AtlierInfoDto | null>(null);
-  bookedSlots       = signal<string[]>([]);
+  availableSlots    = signal<string[]>([]);
   slotsLoading      = signal(false);
+  slotsChecked      = signal(false);
   appointmentTypes  = signal<AppointmentTypeConfigDto[]>([]);
 
-  readonly morningSlots   = ['10:00', '12:00'];
-  readonly afternoonSlots = ['14:00', '16:00'];
-  readonly eveningSlots   = ['18:00'];
+  get morningSlots(): string[] {
+    return this.availableSlots().filter(t => t < '12:00');
+  }
+  get afternoonSlots(): string[] {
+    return this.availableSlots().filter(t => t >= '12:00' && t < '18:00');
+  }
+  get eveningSlots(): string[] {
+    return this.availableSlots().filter(t => t >= '18:00');
+  }
 
   private localDateStr(d: Date): string {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -62,12 +69,7 @@ export class AppointmentComponent implements OnInit {
   }
 
   selectTime(time: string) {
-    if (this.isBooked(time)) return;
     this.form.patchValue({ appointmentTime: time });
-  }
-
-  isBooked(time: string): boolean {
-    return this.bookedSlots().includes(time);
   }
 
   form = this.fb.group({
@@ -120,25 +122,28 @@ export class AppointmentComponent implements OnInit {
 
     this.form.get('appointmentDate')!.valueChanges.subscribe(date => {
       if (date) {
-        this.loadBookedSlots(date);
+        this.loadAvailableSlots(date);
       } else {
-        this.bookedSlots.set([]);
+        this.availableSlots.set([]);
+        this.slotsChecked.set(false);
       }
     });
   }
 
-  private loadBookedSlots(date: string) {
+  private loadAvailableSlots(date: string) {
     this.slotsLoading.set(true);
-    this.appointmentService.getBookedSlots(date).subscribe({
+    this.form.patchValue({ appointmentTime: '' });
+    this.appointmentService.getAvailableSlots(date).subscribe({
       next: slots => {
-        this.bookedSlots.set(slots);
+        this.availableSlots.set(slots);
         this.slotsLoading.set(false);
-        // Clear selected time if it just became booked
-        if (this.selectedTime && slots.includes(this.selectedTime)) {
-          this.form.patchValue({ appointmentTime: '' });
-        }
+        this.slotsChecked.set(true);
       },
-      error: () => this.slotsLoading.set(false)
+      error: () => {
+        this.availableSlots.set([]);
+        this.slotsLoading.set(false);
+        this.slotsChecked.set(true);
+      }
     });
   }
 
@@ -221,10 +226,10 @@ export class AppointmentComponent implements OnInit {
       error: (err) => {
         this.loading.set(false);
         if (err.status === 409) {
-          this.error.set('This time slot has just been taken. Please select a different time.');
+          this.error.set('This time is no longer available. Please select a different time.');
           this.form.patchValue({ appointmentTime: '' });
           const date = this.form.value.appointmentDate as string;
-          if (date) this.loadBookedSlots(date);
+          if (date) this.loadAvailableSlots(date);
         } else {
           this.error.set('Something went wrong. Please try again or contact us directly.');
         }

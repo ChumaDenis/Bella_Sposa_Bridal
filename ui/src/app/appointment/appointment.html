@@ -67,50 +67,56 @@
 
             <div class="form-field">
               <label>Preferred Time <span class="required">*</span></label>
-              <div class="time-slots">
-                <div class="time-group">
-                  <span class="time-group-label">Morning</span>
-                  <div class="time-group-slots">
-                    @for (t of morningSlots; track t) {
-                      <button type="button" class="time-slot-btn"
-                        [class.selected]="selectedTime === t"
-                        [class.booked]="isBooked(t)"
-                        [disabled]="isBooked(t)"
-                        (click)="selectTime(t)">
-                        {{ t }}
-                      </button>
-                    }
-                  </div>
+              @if (slotsLoading()) {
+                <p class="time-slots-status">Checking availability...</p>
+              } @else if (slotsChecked() && availableSlots().length === 0) {
+                <p class="time-slots-status">We're not available on this date. Please choose a different day, or request a callback below.</p>
+              } @else {
+                <div class="time-slots">
+                  @if (morningSlots.length > 0) {
+                    <div class="time-group">
+                      <span class="time-group-label">Morning</span>
+                      <div class="time-group-slots">
+                        @for (t of morningSlots; track t) {
+                          <button type="button" class="time-slot-btn"
+                            [class.selected]="selectedTime === t"
+                            (click)="selectTime(t)">
+                            {{ t }}
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @if (afternoonSlots.length > 0) {
+                    <div class="time-group">
+                      <span class="time-group-label">Afternoon</span>
+                      <div class="time-group-slots">
+                        @for (t of afternoonSlots; track t) {
+                          <button type="button" class="time-slot-btn"
+                            [class.selected]="selectedTime === t"
+                            (click)="selectTime(t)">
+                            {{ t }}
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @if (eveningSlots.length > 0) {
+                    <div class="time-group">
+                      <span class="time-group-label">Evening</span>
+                      <div class="time-group-slots">
+                        @for (t of eveningSlots; track t) {
+                          <button type="button" class="time-slot-btn"
+                            [class.selected]="selectedTime === t"
+                            (click)="selectTime(t)">
+                            {{ t }}
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
                 </div>
-                <div class="time-group">
-                  <span class="time-group-label">Afternoon</span>
-                  <div class="time-group-slots">
-                    @for (t of afternoonSlots; track t) {
-                      <button type="button" class="time-slot-btn"
-                        [class.selected]="selectedTime === t"
-                        [class.booked]="isBooked(t)"
-                        [disabled]="isBooked(t)"
-                        (click)="selectTime(t)">
-                        {{ t }}
-                      </button>
-                    }
-                  </div>
-                </div>
-                <div class="time-group">
-                  <span class="time-group-label">Evening</span>
-                  <div class="time-group-slots">
-                    @for (t of eveningSlots; track t) {
-                      <button type="button" class="time-slot-btn"
-                        [class.selected]="selectedTime === t"
-                        [class.booked]="isBooked(t)"
-                        [disabled]="isBooked(t)"
-                        (click)="selectTime(t)">
-                        {{ t }}
-                      </button>
-                    }
-                  </div>
-                </div>
-              </div>
+              }
               @if (form.get('appointmentTime')?.invalid && form.get('appointmentTime')?.touched) {
                 <span class="field-error">Please select a time</span>
               }
