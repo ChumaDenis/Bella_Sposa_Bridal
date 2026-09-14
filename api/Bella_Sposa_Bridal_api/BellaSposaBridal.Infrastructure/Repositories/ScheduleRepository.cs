@@ -35,6 +35,12 @@ public class ScheduleRepository : IScheduleRepository
     public async Task<DaySchedule?> GetDayScheduleAsync(DateOnly date)
         => await _context.DaySchedules.AsNoTracking().FirstOrDefaultAsync(d => d.Date == date);
 
+    public async Task<List<DaySchedule>> GetUpcomingDaySchedulesAsync(DateOnly fromDate)
+        => await _context.DaySchedules.AsNoTracking()
+            .Where(d => d.Date >= fromDate)
+            .OrderBy(d => d.Date)
+            .ToListAsync();
+
     public async Task SetDayScheduleAsync(DateOnly date, bool isClosed, List<string>? customSlots)
     {
         var existing = await _context.DaySchedules.FirstOrDefaultAsync(d => d.Date == date);

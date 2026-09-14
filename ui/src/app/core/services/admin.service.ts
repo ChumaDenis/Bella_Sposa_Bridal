@@ -207,6 +207,10 @@ export class AdminService {
     return this.http.put(`${API_BASE}/schedule/time-slots`, { slots });
   }
 
+  getUpcomingDaySchedules() {
+    return this.http.get<DayScheduleDto[]>(`${API_BASE}/schedule/days/upcoming`);
+  }
+
   getDaySchedule(date: string) {
     return this.http.get<DayScheduleDto>(`${API_BASE}/schedule/day/${date}`);
   }

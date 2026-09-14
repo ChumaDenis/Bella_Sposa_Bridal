@@ -43,6 +43,13 @@ export class AppointmentComponent implements OnInit {
   slotsLoading      = signal(false);
   slotsChecked      = signal(false);
   appointmentTypes  = signal<AppointmentTypeConfigDto[]>([]);
+  unavailableDates  = signal<Set<string>>(new Set());
+  calendarOpen      = signal(false);
+  calendarMonth     = signal<Date>(this.startOfMonth(new Date()));
+
+  private startOfMonth(d: Date): Date {
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  }
 
   get morningSlots(): string[] {
     return this.availableSlots().filter(t => t < '12:00');
@@ -61,6 +68,94 @@ export class AppointmentComponent implements OnInit {
   get maxDate(): string { const d = new Date(); d.setMonth(d.getMonth() + 1); return this.localDateStr(d); }
 
   get selectedTime(): string { return this.form.get('appointmentTime')?.value ?? ''; }
+
+  get selectedDate(): string { return this.form.get('appointmentDate')?.value ?? ''; }
+
+  get selectedDateLabel(): string {
+    const val = this.selectedDate;
+    if (!val) return 'Select a date';
+    const [y, m, d] = val.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  get calendarLabel(): string {
+    return this.calendarMonth().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  }
+
+  readonly weekdayLabels = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+
+  get calendarCells(): { key: number; dateStr: string; day: number; inMonth: boolean; disabled: boolean; isToday: boolean; isSelected: boolean }[] {
+    const month = this.calendarMonth();
+    const year = month.getFullYear();
+    const monthIndex = month.getMonth();
+    const firstWeekday = (new Date(year, monthIndex, 1).getDay() + 6) % 7;
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+    const todayStr = this.minDate;
+    const maxStr = this.maxDate;
+    const selected = this.selectedDate;
+    const unavailable = this.unavailableDates();
+
+    type Cell = { key: number; dateStr: string; day: number; inMonth: boolean; disabled: boolean; isToday: boolean; isSelected: boolean };
+    const cells: Cell[] = [];
+    let key = 0;
+
+    for (let i = 0; i < firstWeekday; i++) {
+      cells.push({ key: key++, dateStr: '', day: 0, inMonth: false, disabled: true, isToday: false, isSelected: false });
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      cells.push({
+        key: key++,
+        dateStr,
+        day: d,
+        inMonth: true,
+        disabled: dateStr < todayStr || dateStr > maxStr || unavailable.has(dateStr),
+        isToday: dateStr === todayStr,
+        isSelected: dateStr === selected
+      });
+    }
+    while (cells.length % 7 !== 0) {
+      cells.push({ key: key++, dateStr: '', day: 0, inMonth: false, disabled: true, isToday: false, isSelected: false });
+    }
+    return cells;
+  }
+
+  get canGoPrevMonth(): boolean {
+    const prev = new Date(this.calendarMonth());
+    prev.setMonth(prev.getMonth() - 1);
+    const endOfPrev = new Date(prev.getFullYear(), prev.getMonth() + 1, 0);
+    return this.localDateStr(endOfPrev) >= this.minDate;
+  }
+
+  get canGoNextMonth(): boolean {
+    const next = new Date(this.calendarMonth());
+    next.setMonth(next.getMonth() + 1);
+    return this.localDateStr(next) <= this.maxDate;
+  }
+
+  toggleCalendar() { this.calendarOpen.update(v => !v); }
+  closeCalendar() { this.calendarOpen.set(false); }
+
+  prevMonth() {
+    if (!this.canGoPrevMonth) return;
+    const m = new Date(this.calendarMonth());
+    m.setMonth(m.getMonth() - 1);
+    this.calendarMonth.set(m);
+  }
+
+  nextMonth() {
+    if (!this.canGoNextMonth) return;
+    const m = new Date(this.calendarMonth());
+    m.setMonth(m.getMonth() + 1);
+    this.calendarMonth.set(m);
+  }
+
+  selectDate(cell: { dateStr: string; disabled: boolean }) {
+    if (cell.disabled || !cell.dateStr) return;
+    this.form.patchValue({ appointmentDate: cell.dateStr });
+    this.form.get('appointmentDate')!.markAsTouched();
+    this.calendarOpen.set(false);
+  }
 
   get selectedTypeInfo(): AppointmentTypeConfigDto | null {
     const id = this.form.get('type')?.value;
@@ -100,6 +195,11 @@ export class AppointmentComponent implements OnInit {
 
     this.atlierService.getInfo().subscribe({
       next: (atlier) => this.atlier.set(atlier),
+      error: () => {}
+    });
+
+    this.appointmentService.getUnavailableDates(this.minDate, this.maxDate).subscribe({
+      next: dates => { this.unavailableDates.set(new Set(dates)); this.cdr.markForCheck(); },
       error: () => {}
     });
 

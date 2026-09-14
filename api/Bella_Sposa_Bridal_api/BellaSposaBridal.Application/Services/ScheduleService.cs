@@ -39,6 +39,18 @@ public class ScheduleService : IScheduleService
         };
     }
 
+    public async Task<List<DayScheduleDto>> GetUpcomingDaySchedulesAsync()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var schedules = await _repo.GetUpcomingDaySchedulesAsync(today);
+        return schedules.Select(ds => new DayScheduleDto
+        {
+            Date = ds.Date,
+            IsClosed = ds.IsClosed,
+            CustomSlots = ds.CustomSlots.Count > 0 ? ds.CustomSlots : null
+        }).ToList();
+    }
+
     public async Task SetDayScheduleAsync(DateOnly date, SetDayScheduleDto dto)
         => await _repo.SetDayScheduleAsync(date, dto.IsClosed, dto.CustomSlots);
 
@@ -63,5 +75,19 @@ public class ScheduleService : IScheduleService
 
         var booked = await _appointmentRepo.GetBookedSlotsAsync(date);
         return allSlots.Where(s => !booked.Contains(s)).ToList();
+    }
+
+    public async Task<List<string>> GetUnavailableDatesAsync(DateOnly from, DateOnly to)
+    {
+        var unavailable = new List<string>();
+        if (to < from) return unavailable;
+
+        var last = to.DayNumber - from.DayNumber > 90 ? from.AddDays(90) : to;
+        for (var date = from; date <= last; date = date.AddDays(1))
+        {
+            var slots = await GetAvailableSlotsAsync(date);
+            if (slots.Count == 0) unavailable.Add(date.ToString("yyyy-MM-dd"));
+        }
+        return unavailable;
     }
 }

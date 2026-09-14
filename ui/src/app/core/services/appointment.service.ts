@@ -19,6 +19,10 @@ export class AppointmentService {
     return this.http.get<string[]>(`${API_BASE}/schedule/available-slots?date=${date}`);
   }
 
+  getUnavailableDates(from: string, to: string) {
+    return this.http.get<string[]>(`${API_BASE}/schedule/unavailable-dates?from=${from}&to=${to}`);
+  }
+
   getAppointmentTypes() {
     return this.http.get<AppointmentTypeConfigDto[]>(`${API_BASE}/appointment-types`);
   }

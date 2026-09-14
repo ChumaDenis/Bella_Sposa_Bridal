@@ -36,6 +36,20 @@ public class ScheduleController : ControllerBase
         return Ok(slots);
     }
 
+    [HttpGet("unavailable-dates")]
+    public async Task<ActionResult<List<string>>> GetUnavailableDates([FromQuery] DateOnly from, [FromQuery] DateOnly to)
+    {
+        var dates = await _service.GetUnavailableDatesAsync(from, to);
+        return Ok(dates);
+    }
+
+    [HttpGet("days/upcoming")]
+    public async Task<ActionResult<List<DayScheduleDto>>> GetUpcomingDaySchedules()
+    {
+        var schedules = await _service.GetUpcomingDaySchedulesAsync();
+        return Ok(schedules);
+    }
+
     [HttpGet("day/{date}")]
     public async Task<ActionResult<DayScheduleDto>> GetDaySchedule(DateOnly date)
     {

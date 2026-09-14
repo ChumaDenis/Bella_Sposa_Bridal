@@ -713,6 +713,36 @@
             }
           </div>
 
+          <!-- Upcoming overrides list -->
+          <div class="admin-section">
+            <h2 class="admin-section-title">Upcoming Day Overrides</h2>
+            <p class="admin-section-hint">Closed days and custom schedules from today onward. Past dates are hidden automatically.</p>
+            @if (upcomingOverridesLoading()) {
+              <p class="admin-section-hint">Loading…</p>
+            } @else if (upcomingDayOverrides().length === 0) {
+              <p class="admin-section-hint">No upcoming overrides.</p>
+            } @else {
+              <div class="admin-overrides-list">
+                @for (ov of upcomingDayOverrides(); track ov.date) {
+                  <div class="admin-override-row">
+                    <div class="admin-override-info">
+                      <span class="admin-override-date">{{ ov.date }}</span>
+                      @if (ov.isClosed) {
+                        <span class="admin-override-badge closed">Closed</span>
+                      } @else {
+                        <span class="admin-override-badge">{{ ov.customSlots?.join(', ') }}</span>
+                      }
+                    </div>
+                    <div class="admin-override-actions">
+                      <button class="admin-btn-ghost-sm" (click)="editOverride(ov.date)">Edit</button>
+                      <button class="admin-btn-ghost-sm danger" (click)="removeOverride(ov.date)">Remove</button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
         </div>
       }
 

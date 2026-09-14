@@ -1684,6 +1684,53 @@
   flex-shrink: 0;
 }
 
+/* Schedule - upcoming overrides list */
+.admin-overrides-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-override-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #1a2030;
+  border: 1px solid #2d3748;
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-override-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-override-date {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #d1d5db;
+}
+
+.admin-override-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #B8975A;
+  letter-spacing: 0.02em;
+}
+
+.admin-override-badge.closed { color: #ef4444; }
+
+.admin-override-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 /* ─── ADMIN NOTES ────────────────────────────────────────────── */
 .admin-section-header {
   display: flex;

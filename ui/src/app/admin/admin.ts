@@ -193,6 +193,9 @@ export class AdminComponent implements OnInit {
   dayEnabledSlots  = signal<string[]>([]);
   dayHasOverride   = signal(false);
 
+  upcomingDayOverrides      = signal<DayScheduleDto[]>([]);
+  upcomingOverridesLoading  = signal(false);
+
   // ─── Lazy-load flags ─────────────────────────────────────────────
   private dressesLoaded = false;
   private collectionsLoaded = false;
@@ -379,7 +382,7 @@ export class AdminComponent implements OnInit {
   setApptView(v: ApptView) {
     this.apptView.set(v);
     this.apptError.set(null);
-    if (v === 'schedule') this.loadTimeSlots();
+    if (v === 'schedule') { this.loadTimeSlots(); this.loadUpcomingDayOverrides(); }
     this.cdr.markForCheck();
   }
 
@@ -696,6 +699,39 @@ export class AdminComponent implements OnInit {
   }
 
   // ─── Schedule – day override ──────────────────────────────────────
+  loadUpcomingDayOverrides() {
+    this.upcomingOverridesLoading.set(true);
+    this.svc.getUpcomingDaySchedules().subscribe({
+      next: schedules => {
+        this.upcomingDayOverrides.set(schedules);
+        this.upcomingOverridesLoading.set(false);
+        this.cdr.markForCheck();
+      },
+      error: () => { this.upcomingOverridesLoading.set(false); this.cdr.markForCheck(); }
+    });
+  }
+
+  editOverride(date: string) {
+    this.dayOverrideDate.set(date);
+    this.loadDayOverride();
+  }
+
+  removeOverride(date: string) {
+    if (!confirm(`Remove the override for ${date}?`)) return;
+    this.svc.deleteDaySchedule(date).subscribe({
+      next: () => {
+        this.loadUpcomingDayOverrides();
+        if (this.dayOverrideDate() === date) {
+          this.dayOverride.set(null);
+          this.dayHasOverride.set(false);
+          this.dayIsClosed.set(false);
+          this.dayEnabledSlots.set(this.timeSlots().map(s => s.time));
+        }
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
   loadDayOverride() {
     const date = this.dayOverrideDate();
     if (!date) return;
@@ -741,6 +777,7 @@ export class AdminComponent implements OnInit {
       next: () => {
         this.daySaving.set(false);
         this.dayHasOverride.set(true);
+        this.loadUpcomingDayOverrides();
         this.cdr.markForCheck();
       },
       error: () => { this.daySaving.set(false); this.cdr.markForCheck(); }
@@ -756,6 +793,7 @@ export class AdminComponent implements OnInit {
         this.dayHasOverride.set(false);
         this.dayIsClosed.set(false);
         this.dayEnabledSlots.set(this.timeSlots().map(s => s.time));
+        this.loadUpcomingDayOverrides();
         this.cdr.markForCheck();
       }
     });
