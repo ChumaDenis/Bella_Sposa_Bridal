@@ -330,6 +330,8 @@ export class AppointmentComponent implements OnInit {
           this.form.patchValue({ appointmentTime: '' });
           const date = this.form.value.appointmentDate as string;
           if (date) this.loadAvailableSlots(date);
+        } else if (err.status === 400 && err.error?.message) {
+          this.error.set(err.error.message);
         } else {
           this.error.set('Something went wrong. Please try again or contact us directly.');
         }

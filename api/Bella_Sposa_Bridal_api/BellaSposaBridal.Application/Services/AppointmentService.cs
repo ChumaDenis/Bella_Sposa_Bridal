@@ -43,9 +43,19 @@ public class AppointmentService : IAppointmentService
 
     public async Task<AppointmentDto> CreateAsync(CreateAppointmentDto dto)
     {
+        if (string.IsNullOrWhiteSpace(dto.FirstName) || string.IsNullOrWhiteSpace(dto.LastName) || string.IsNullOrWhiteSpace(dto.Phone))
+            throw new ArgumentException("First name, last name and phone are required.");
+
+        var type = await _typeRepo.GetByIdAsync(dto.Type);
+        if (type is null || !type.IsActive)
+            throw new ArgumentException("Selected appointment type is not available.");
+
         var isCallback = dto.AppointmentDateTime.Year >= 2099;
         if (!isCallback)
         {
+            if (dto.AppointmentDateTime < DateTime.UtcNow)
+                throw new ArgumentException("Appointment date must be in the future.");
+
             var date = DateOnly.FromDateTime(dto.AppointmentDateTime);
             var daySchedule = await _scheduleRepository.GetDayScheduleAsync(date);
             if (daySchedule?.IsClosed == true)

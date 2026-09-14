@@ -669,17 +669,24 @@
           <!-- Day overrides -->
           <div class="admin-section">
             <h2 class="admin-section-title">Day Override</h2>
-            <p class="admin-section-hint">Close a specific day or set custom time slots for it.</p>
+            <p class="admin-section-hint">Close a day (or a whole range of days at once) or set custom time slots for it.</p>
             <div class="admin-day-picker-row">
               <input class="admin-input admin-day-input" type="date"
-                     [ngModel]="dayOverrideDate()" (ngModelChange)="dayOverrideDate.set($event); loadDayOverride()" />
+                     [ngModel]="dayOverrideStart()" (ngModelChange)="onOverrideStartChange($event)" />
+              <span class="admin-day-range-sep">to</span>
+              <input class="admin-input admin-day-input" type="date"
+                     [min]="dayOverrideStart()"
+                     [ngModel]="dayOverrideEnd()" (ngModelChange)="onOverrideEndChange($event)" />
               @if (dayHasOverride()) {
                 <span class="admin-day-override-badge">Override active</span>
                 <button class="admin-btn-ghost-sm danger" (click)="deleteDayOverride()">Remove Override</button>
               }
             </div>
+            @if (overrideRangeDayCount > 1) {
+              <p class="admin-section-hint">Applies to all {{ overrideRangeDayCount }} days in this range.</p>
+            }
 
-            @if (dayOverrideDate()) {
+            @if (dayOverrideStart()) {
               <div class="admin-day-form">
                 @if (dayLoading()) {
                   <p class="admin-section-hint">Loading…</p>
@@ -723,19 +730,21 @@
               <p class="admin-section-hint">No upcoming overrides.</p>
             } @else {
               <div class="admin-overrides-list">
-                @for (ov of upcomingDayOverrides(); track ov.date) {
+                @for (grp of groupedDayOverrides; track grp.startDate) {
                   <div class="admin-override-row">
                     <div class="admin-override-info">
-                      <span class="admin-override-date">{{ ov.date }}</span>
-                      @if (ov.isClosed) {
+                      <span class="admin-override-date">
+                        {{ grp.startDate }}@if (grp.endDate !== grp.startDate) { <span> – {{ grp.endDate }}</span> }
+                      </span>
+                      @if (grp.isClosed) {
                         <span class="admin-override-badge closed">Closed</span>
                       } @else {
-                        <span class="admin-override-badge">{{ ov.customSlots?.join(', ') }}</span>
+                        <span class="admin-override-badge">{{ grp.customSlots?.join(', ') }}</span>
                       }
                     </div>
                     <div class="admin-override-actions">
-                      <button class="admin-btn-ghost-sm" (click)="editOverride(ov.date)">Edit</button>
-                      <button class="admin-btn-ghost-sm danger" (click)="removeOverride(ov.date)">Remove</button>
+                      <button class="admin-btn-ghost-sm" (click)="editOverride(grp.startDate, grp.endDate)">Edit</button>
+                      <button class="admin-btn-ghost-sm danger" (click)="removeOverrideRange(grp.startDate, grp.endDate)">Remove</button>
                     </div>
                   </div>
                 }

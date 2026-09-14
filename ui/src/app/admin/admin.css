@@ -1641,6 +1641,11 @@
 
 .admin-day-input { width: auto !important; }
 
+.admin-day-range-sep {
+  font-size: 0.72rem;
+  color: #6b7280;
+}
+
 .admin-day-override-badge {
   font-size: 0.68rem;
   font-weight: 600;

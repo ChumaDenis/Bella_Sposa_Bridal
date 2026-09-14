@@ -3,6 +3,7 @@ import {
   signal, ChangeDetectorRef, ViewChild, ElementRef
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -185,7 +186,8 @@ export class AdminComponent implements OnInit {
   slotsSaving      = signal(false);
   newSlotTime      = signal('');
 
-  dayOverrideDate  = signal('');
+  dayOverrideStart = signal('');
+  dayOverrideEnd   = signal('');
   dayOverride      = signal<DayScheduleDto | null>(null);
   dayLoading       = signal(false);
   daySaving        = signal(false);
@@ -711,17 +713,65 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  editOverride(date: string) {
-    this.dayOverrideDate.set(date);
+  get groupedDayOverrides(): { startDate: string; endDate: string; isClosed: boolean; customSlots: string[] | null }[] {
+    const overrides = this.upcomingDayOverrides();
+    const groups: { startDate: string; endDate: string; isClosed: boolean; customSlots: string[] | null }[] = [];
+    const sameSlots = (a: string[] | null, b: string[] | null) =>
+      (a ?? []).length === (b ?? []).length && (a ?? []).every((s, i) => s === (b ?? [])[i]);
+    const isNextDay = (dateStr: string, nextStr: string) => {
+      const d = new Date(dateStr + 'T00:00:00');
+      d.setDate(d.getDate() + 1);
+      return this.localDateStr(d) === nextStr;
+    };
+
+    for (const ov of overrides) {
+      const last = groups[groups.length - 1];
+      if (last && last.isClosed === ov.isClosed && sameSlots(last.customSlots, ov.customSlots) && isNextDay(last.endDate, ov.date)) {
+        last.endDate = ov.date;
+      } else {
+        groups.push({ startDate: ov.date, endDate: ov.date, isClosed: ov.isClosed, customSlots: ov.customSlots });
+      }
+    }
+    return groups;
+  }
+
+  private datesInRange(startDate: string, endDate: string): string[] {
+    const dates: string[] = [];
+    const cur = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
+    while (cur <= end) {
+      dates.push(this.localDateStr(cur));
+      cur.setDate(cur.getDate() + 1);
+    }
+    return dates;
+  }
+
+  editOverride(startDate: string, endDate: string) {
+    this.dayOverrideStart.set(startDate);
+    this.dayOverrideEnd.set(endDate);
     this.loadDayOverride();
   }
 
-  removeOverride(date: string) {
-    if (!confirm(`Remove the override for ${date}?`)) return;
-    this.svc.deleteDaySchedule(date).subscribe({
+  onOverrideStartChange(date: string) {
+    this.dayOverrideStart.set(date);
+    if (!this.dayOverrideEnd() || this.dayOverrideEnd() < date) {
+      this.dayOverrideEnd.set(date);
+    }
+    this.loadDayOverride();
+  }
+
+  onOverrideEndChange(date: string) {
+    this.dayOverrideEnd.set(date);
+  }
+
+  removeOverrideRange(startDate: string, endDate: string) {
+    const dates = this.datesInRange(startDate, endDate);
+    const label = dates.length > 1 ? `${startDate} – ${endDate} (${dates.length} days)` : startDate;
+    if (!confirm(`Remove the override for ${label}?`)) return;
+    forkJoin(dates.map(d => this.svc.deleteDaySchedule(d))).subscribe({
       next: () => {
         this.loadUpcomingDayOverrides();
-        if (this.dayOverrideDate() === date) {
+        if (dates.includes(this.dayOverrideStart())) {
           this.dayOverride.set(null);
           this.dayHasOverride.set(false);
           this.dayIsClosed.set(false);
@@ -733,7 +783,7 @@ export class AdminComponent implements OnInit {
   }
 
   loadDayOverride() {
-    const date = this.dayOverrideDate();
+    const date = this.dayOverrideStart();
     if (!date) return;
     this.dayLoading.set(true);
     this.svc.getDaySchedule(date).subscribe({
@@ -768,12 +818,21 @@ export class AdminComponent implements OnInit {
     return this.dayEnabledSlots().includes(time);
   }
 
+  get overrideRangeDayCount(): number {
+    const start = this.dayOverrideStart();
+    const end = this.dayOverrideEnd();
+    if (!start || !end || end < start) return 0;
+    return this.datesInRange(start, end).length;
+  }
+
   saveDayOverride() {
-    const date = this.dayOverrideDate();
-    if (!date) return;
+    const start = this.dayOverrideStart();
+    const end = this.dayOverrideEnd() || start;
+    if (!start || end < start) return;
+    const dates = this.datesInRange(start, end);
     this.daySaving.set(true);
     const customSlots = this.dayIsClosed() ? null : this.dayEnabledSlots();
-    this.svc.setDaySchedule(date, this.dayIsClosed(), customSlots).subscribe({
+    forkJoin(dates.map(d => this.svc.setDaySchedule(d, this.dayIsClosed(), customSlots))).subscribe({
       next: () => {
         this.daySaving.set(false);
         this.dayHasOverride.set(true);
@@ -785,9 +844,11 @@ export class AdminComponent implements OnInit {
   }
 
   deleteDayOverride() {
-    const date = this.dayOverrideDate();
-    if (!date) return;
-    this.svc.deleteDaySchedule(date).subscribe({
+    const start = this.dayOverrideStart();
+    const end = this.dayOverrideEnd() || start;
+    if (!start) return;
+    const dates = this.datesInRange(start, end < start ? start : end);
+    forkJoin(dates.map(d => this.svc.deleteDaySchedule(d))).subscribe({
       next: () => {
         this.dayOverride.set(null);
         this.dayHasOverride.set(false);
